@@ -37,6 +37,20 @@ const FormulaireDemande = () => {
         month: "2-digit",
         year: "numeric",
       });
+
+      const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
+
+      const handleFormDataChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({
+          ...prev,
+          [name]: value,
+        }));
+      };
+
+      const handleRowsChange = (updatedRows) => {
+        setLignesEngagement(updatedRows);
+      };
       
 
   const handleChange = (e) => {
@@ -69,6 +83,11 @@ const FormulaireDemande = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Formulaire soumis :", formData);
+    const dataSoumise = {
+      ...formData,
+      lignesEngagement, // Inclut les lignes d'engagement
+    };
+    console.log("Formulaire soumis :", dataSoumise);
   };
 
   const handleFileChange = (e) => {
@@ -135,7 +154,7 @@ const FormulaireDemande = () => {
           {/* Section Propriété de la demande */}
           <ProprieteDemande 
             formData={formData} 
-            handleChange={handleChange} 
+            handleChange={handleFormDataChange} 
             isTransversal={isTransversal} 
           />
 
@@ -146,6 +165,7 @@ const FormulaireDemande = () => {
             isTransversal={isTransversal} 
             selectedBudgetAction={formData.budgetsActions}
             selectedBudget={formData.budgetsActions}
+            onRowsChange={handleRowsChange}
           />
         
           <InformationLivraison 

@@ -10,7 +10,7 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
-const LignesEngagements = ({ isTransversal, selectedBudget }) => {
+const LignesEngagements = ({ isTransversal, selectedBudget, onRowsChange  }) => {
   const [rows, setRows] = useState([
     { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
   ]);
@@ -40,26 +40,58 @@ const LignesEngagements = ({ isTransversal, selectedBudget }) => {
       .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
   }, []);
 
+  // const handleAddRow = () => {
+  //   setRows([
+  //     ...rows,
+  //     { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
+  //   ]);
+  //   onRowsChange(updatedRows);
+  // };
+
   const handleAddRow = () => {
-    setRows([
+    const updatedRows = [
       ...rows,
-      { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
-    ]);
+      { budgetAction: "", categorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
+    ];
+    setRows(updatedRows);
+    onRowsChange(updatedRows); // Met à jour au parent
   };
+
+  // const handleRemoveRow = (index) => {
+  //   const updatedRows = rows.filter((_, i) => i !== index);
+  //   setRows(updatedRows);
+  //   onRowsChange(updatedRows);
+  // };
 
   const handleRemoveRow = (index) => {
     const updatedRows = rows.filter((_, i) => i !== index);
     setRows(updatedRows);
+    onRowsChange(updatedRows); // Met à jour au parent
   };
+
+  // const handleChange = (index, field, value) => {
+  //   const updatedRows = [...rows];
+  //   updatedRows[index][field] = value;
+
+  //   // Réinitialiser la catégorie si le budget/action change
+  //   if (field === "budgetAction") {
+  //     updatedRows[index]["categorie"] = "";
+  //   }
+
+  //   // Recalculer le total
+  //   if (field === "quantite" || field === "prixUnitaire") {
+  //     updatedRows[index]["total"] =
+  //       parseFloat(updatedRows[index].quantite || 0) *
+  //       parseFloat(updatedRows[index].prixUnitaire || 0);
+  //   }
+
+  //   setRows(updatedRows);
+  //   onRowsChange(updatedRows);
+  // };
 
   const handleChange = (index, field, value) => {
     const updatedRows = [...rows];
     updatedRows[index][field] = value;
-
-    // Réinitialiser la catégorie si le budget/action change
-    if (field === "budgetAction") {
-      updatedRows[index]["categorie"] = "";
-    }
 
     // Recalculer le total
     if (field === "quantite" || field === "prixUnitaire") {
@@ -69,6 +101,7 @@ const LignesEngagements = ({ isTransversal, selectedBudget }) => {
     }
 
     setRows(updatedRows);
+    onRowsChange(updatedRows); // Transmet l'état au composant parent
   };
 
 

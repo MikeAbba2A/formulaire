@@ -76,9 +76,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
               required
               sx={{ marginBottom: 2 }}
             >
-              <MenuItem value="achat">Achat</MenuItem>
-              <MenuItem value="location">Location</MenuItem>
-              <MenuItem value="service">Service</MenuItem>
+              <MenuItem value="achat">Demande d'achat</MenuItem>
             </TextField>
 
             {/* Exercice budgétaire */}
