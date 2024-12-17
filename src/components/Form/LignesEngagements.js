@@ -10,7 +10,7 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
-const LignesEngagements = ({ isTransversal }) => {
+const LignesEngagements = ({ isTransversal, selectedBudget }) => {
   const [rows, setRows] = useState([
     { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
   ]);
@@ -71,6 +71,7 @@ const LignesEngagements = ({ isTransversal }) => {
     setRows(updatedRows);
   };
 
+
   const totalGeneral = rows.reduce((acc, row) => acc + row.total, 0);
 
   return (
@@ -82,9 +83,12 @@ const LignesEngagements = ({ isTransversal }) => {
       </Typography>
 
       {rows.map((row, index) => {
-        // Filtrer les catégories selon le budget/action sélectionné
+        // Priorité au budget local (row.budgetAction), sinon selectedBudget global
+        const activeBudget = row.budgetAction || selectedBudget;
+
+        // Filtrer les catégories selon le budget actif
         const filteredCategories = categories.filter(
-          (cat) => cat.parent === row.budgetAction
+          (cat) => cat.parent === activeBudget
         );
 
         return (
@@ -113,11 +117,12 @@ const LignesEngagements = ({ isTransversal }) => {
               <TextField
                 select
                 fullWidth
+                label="Catégorie"
                 value={row.categorie}
                 onChange={(e) => handleChange(index, "categorie", e.target.value)}
-                label="Catégorie"
-                disabled={!row.budgetAction} // Désactiver si aucun budget/action sélectionné
+                disabled={!activeBudget}
               >
+                <MenuItem value="">-- Sélectionner une catégorie --</MenuItem>
                 {filteredCategories.map((category, i) => (
                   <MenuItem key={i} value={category.titre}>
                     {category.titre}

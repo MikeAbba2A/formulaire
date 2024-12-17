@@ -95,18 +95,18 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
                 select
                 fullWidth
                 label="Budgets / Actions *"
-                name="budgetsActions"
+                name="budgetsActions" // Nom de la propriété
                 value={formData.budgetsActions}
-                onChange={handleChange}
+                onChange={handleChange} // Appelle la fonction parent pour mettre à jour l'état
                 required
                 sx={{ marginBottom: 2 }}
               >
                 {budgets.map((budget, index) => (
                   <MenuItem key={index} value={budget}>
-                    {budget} {/* Utilisez directement le nom du budget */}
+                    {budget} {/* Affiche le budget */}
                   </MenuItem>
                 ))}
-              </TextField>
+            </TextField>
             )}
 
             

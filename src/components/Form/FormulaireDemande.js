@@ -9,6 +9,9 @@ import LignesEngagements from "./LignesEngagements";
 import InformationLivraison from "./InformationLivraison";
 
 const FormulaireDemande = () => {
+
+    
+
     const [formData, setFormData] = useState({
         adresseLivraison: "",
         adresseFacturation: "",
@@ -75,6 +78,8 @@ const FormulaireDemande = () => {
 
   const [isTransversal, setIsTransversal] = useState(false);
 
+  
+
   return (
     <>
       {/* Barre rouge */}
@@ -140,6 +145,7 @@ const FormulaireDemande = () => {
             handleChange={handleChange} 
             isTransversal={isTransversal} 
             selectedBudgetAction={formData.budgetsActions}
+            selectedBudget={formData.budgetsActions}
           />
         
           <InformationLivraison 
