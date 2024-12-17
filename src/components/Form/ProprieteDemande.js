@@ -4,6 +4,8 @@ import { Grid, MenuItem, TextField, Typography, Box } from "@mui/material";
 const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
   const [budgets, setBudgets] = useState([]); // Liste des budgets/actions
   const [categories, setCategories] = useState([]); // Liste des catégories
+  const [poles, setPoles] = useState([]); // Liste des catégories
+  const [annees, setAnnees] = useState([]); // Liste des catégories
 
   // Récupération des budgets/actions
   useEffect(() => {
@@ -14,6 +16,28 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
         setBudgets(data);
       })
       .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+  }, []);
+
+  // Récupération des pôles
+  useEffect(() => {
+    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/pole.php")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Pôles reçus :", data);
+        setPoles(data);
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des Poles :", error));
+  }, []);
+
+  // Récupération des années
+  useEffect(() => {
+    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/annee_budgetaire.php")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Années budgetaire reçues :", data);
+        setAnnees(data);
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des années budgetaire :", error));
   }, []);
 
   // Récupération des catégories
@@ -68,9 +92,11 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
               required
               sx={{ marginBottom: 2 }}
             >
-              <MenuItem value="2023">2023</MenuItem>
-              <MenuItem value="2024">2024</MenuItem>
-              <MenuItem value="2025">2025</MenuItem>
+              {annees.map((annee, index) => (
+                  <MenuItem key={index} value={annee}>
+                    {annee} {/* Affiche les années budgetaires */}
+                  </MenuItem>
+                ))}
             </TextField>
 
             {/* Pôle */}
@@ -84,9 +110,11 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
               required
               sx={{ marginBottom: 2 }}
             >
-              <MenuItem value="it">IT</MenuItem>
-              <MenuItem value="rh">RH</MenuItem>
-              <MenuItem value="logistique">Logistique</MenuItem>
+              {poles.map((pole, index) => (
+                  <MenuItem key={index} value={pole}>
+                    {pole} {/* Affiche les pôles */}
+                  </MenuItem>
+                ))}
             </TextField>
 
             {/* Budgets / Actions */}
