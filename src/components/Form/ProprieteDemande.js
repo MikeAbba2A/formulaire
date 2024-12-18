@@ -1,11 +1,23 @@
 import React, { useEffect, useState } from "react";
 import { Grid, MenuItem, TextField, Typography, Box } from "@mui/material";
 
-const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
+const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }) => {
   const [budgets, setBudgets] = useState([]); // Liste des budgets/actions
   const [categories, setCategories] = useState([]); // Liste des catégories
   const [poles, setPoles] = useState([]); // Liste des catégories
   const [annees, setAnnees] = useState([]); // Liste des catégories
+
+  // Map des pôles avec leurs numéros
+  const polesMap = {
+    "DG": "0",
+    "PAF": "1",
+    "POGEMOB": "2",
+    "PCOM": "3",
+    "PRECH": "4",
+    "PDONNEES": "5",
+    "PSANTE": "5",
+    "PQDV": "6"
+  };
 
   // Récupération des budgets/actions
   useEffect(() => {
@@ -50,6 +62,33 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
       })
       .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
   }, []);
+
+  // Fonction pour générer la date au format AAAAMMJJ
+  const getCurrentDate = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}${month}${day}`;
+  };
+
+  // Mise à jour du numéro de pièce lorsque le pôle change
+  const handlePoleChange = (e) => {
+    const selectedPole = e.target.value;
+    const poleNumber = polesMap[selectedPole] || "0";
+    const datePart = getCurrentDate();
+    const sequence = "000001"; // Numéro séquentiel par défaut
+
+    // Générer le numéro de pièce
+    const generatedNumeroPiece = `${poleNumber}${datePart}${sequence}`;
+
+    // Mettre à jour le formulaire
+    setFormData({
+      ...formData,
+      services: selectedPole, // Met à jour le pôle sélectionné
+      numeroPiece: generatedNumeroPiece, // Met à jour le numéro de pièce
+    });
+  };
 
   // Filtrage des catégories en fonction du budget/action sélectionné
   const filteredCategories = categories.filter(
@@ -103,8 +142,8 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal }) => {
               fullWidth
               label="Pôle"
               name="services"
-              value={formData.services}
-              onChange={handleChange}
+              value={formData.services || ""}
+              onChange={handlePoleChange}
               required
               sx={{ marginBottom: 2 }}
             >

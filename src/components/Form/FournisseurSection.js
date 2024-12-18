@@ -62,14 +62,12 @@ const FournisseurSection = ({ formData, handleChange, setFormData }) => {
         </TextField>
       </Grid>
       <Grid item xs={12} md={6}>
-        <TextField
+      <TextField
           fullWidth
           label="Numéro de pièce"
           name="numeroPiece"
-          value={formData.numeroPiece}
-          InputProps={{
-            readOnly: true,
-          }}
+          value={formData.numeroPiece || ""}
+          InputProps={{ readOnly: true }}
           variant="outlined"
         />
       </Grid>

@@ -16,7 +16,7 @@ const FormulaireDemande = () => {
         adresseLivraison: "",
         adresseFacturation: "",
         fournisseur: "",
-        numeroPiece: "x-DA000475",
+        numeroPiece: "",
         copieDocument: false,
         typeDemande: "",
         exerciceBudgetaire: "",
@@ -32,38 +32,32 @@ const FormulaireDemande = () => {
         lignesTransversales: false, // Deuxième checkbox
       });
 
-      const today = new Date().toLocaleDateString("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-      });
+    const today = new Date().toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
-      const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
+    const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
 
-      const handleFormDataChange = (e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({
-          ...prev,
-          [name]: value,
-        }));
-      };
+    const handleFormDataChange = (e) => {
+      const { name, value } = e.target;
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    };
 
-      const handleRowsChange = (updatedRows) => {
-        setLignesEngagement(updatedRows);
-      };
-      
+    const handleRowsChange = (updatedRows) => {
+      setLignesEngagement(updatedRows);
+    };
+    
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+    const handleChange = (e) => {
+  const { name, value } = e.target;
+  setFormData({ ...formData, [name]: value });
+    };
 
-//   const handleCheckboxChange = (e, field) => {
-//     setFormData((prevData) => ({
-//       ...prevData,
-//       [field]: e.target.checked, // Met uniquement à jour le champ spécifié
-//     }));
-//   };
 
     const handleCheckboxChange = (e, field) => {
         const isChecked = e.target.checked;
@@ -80,24 +74,46 @@ const FormulaireDemande = () => {
         }
     };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Formulaire soumis :", formData);
-    const dataSoumise = {
-      ...formData,
-      lignesEngagement, // Inclut les lignes d'engagement
+    
+
+    const handleFileChange = (e) => {
+      const file = e.target.files[0];
+      setFormData({ ...formData, pieceJointe: file });
     };
-    console.log("Formulaire soumis :", dataSoumise);
-  };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFormData({ ...formData, pieceJointe: file });
-  };
+    const [isTransversal, setIsTransversal] = useState(false);
 
-  const [isTransversal, setIsTransversal] = useState(false);
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      console.log("Formulaire soumis :", formData);
+      const dataSoumise = {
+        ...formData,
+        lignesEngagement, // Inclut les lignes d'engagement
+      };
+      console.log("Formulaire soumis :", dataSoumise);
 
-  
+       // Envoi des données via Fetch API
+    fetch("process_form.php", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(dataSoumise), // Convertir en JSON
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Réponse du serveur :", data);
+        alert("Formulaire soumis avec succès !");
+      })
+      .catch((error) => {
+        console.error("Erreur lors de l'envoi du formulaire :", error);
+        alert("Une erreur est survenue.");
+      });
+
+
+    };
+
+   
 
   return (
     <>
@@ -150,12 +166,15 @@ const FormulaireDemande = () => {
             handleCheckboxChange={handleCheckboxChange}
           />
 
+
+
           
           {/* Section Propriété de la demande */}
           <ProprieteDemande 
             formData={formData} 
             handleChange={handleFormDataChange} 
             isTransversal={isTransversal} 
+            setFormData={setFormData}
           />
 
           {/* Section Propriété de la demande */}
@@ -166,7 +185,12 @@ const FormulaireDemande = () => {
             selectedBudgetAction={formData.budgetsActions}
             selectedBudget={formData.budgetsActions}
             onRowsChange={handleRowsChange}
+            setFormData={setFormData}
           />
+
+
+
+
         
           <InformationLivraison 
                 formData={formData}
