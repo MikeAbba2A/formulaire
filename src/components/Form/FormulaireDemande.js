@@ -93,22 +93,26 @@ const FormulaireDemande = () => {
       console.log("Formulaire soumis :", dataSoumise);
 
        // Envoi des données via Fetch API
-    fetch("process_form.php", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataSoumise), // Convertir en JSON
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Réponse du serveur :", data);
-        alert("Formulaire soumis avec succès !");
+       fetch("process_form.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataSoumise),
       })
-      .catch((error) => {
-        console.error("Erreur lors de l'envoi du formulaire :", error);
-        alert("Une erreur est survenue.");
-      });
+        .then((response) => response.text()) // Utilisez `.text()` au lieu de `.json()` pour voir la réponse brute
+        .then((data) => {
+          console.log("Réponse brute du serveur :", data);
+          try {
+            const parsedData = JSON.parse(data);
+            console.log("Réponse JSON parsée :", parsedData);
+          } catch (error) {
+            console.error("Erreur lors du parsing JSON :", error);
+          }
+        })
+        .catch((error) => {
+          console.error("Erreur lors de l'envoi du formulaire :", error);
+        });
 
 
     };
