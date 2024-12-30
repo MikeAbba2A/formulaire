@@ -94,20 +94,30 @@ const FormulaireDemande = () => {
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const jsonData = urlParams.get("json");
-  
+    
       if (jsonData) {
         console.log("JSON brut reçu :", jsonData);
         try {
           const parsedData = JSON.parse(jsonData);
-  
+    
           console.log("Données analysées :", parsedData);
-  
+    
+          // Incrémenter le numéro de pièce
+          if (parsedData.numeroPiece) {
+            const currentNumeroPiece = parsedData.numeroPiece;
+            const prefix = currentNumeroPiece.slice(0, -6); // Récupère tout sauf les 6 derniers caractères
+            const sequence = parseInt(currentNumeroPiece.slice(-6)) + 1; // Incrémente la séquence
+            const newNumeroPiece = `${prefix}${sequence.toString().padStart(6, "0")}`; // Reformate avec les zéros
+    
+            parsedData.numeroPiece = newNumeroPiece; // Met à jour le numéro de pièce
+          }
+    
           // Mettre à jour les données du formulaire
           setFormData((prev) => ({
             ...prev,
             ...parsedData,
           }));
-  
+    
           // Mettre à jour les lignes d'engagement
           if (parsedData.lignesEngagement) {
             console.log("Lignes d'engagement analysées :", parsedData.lignesEngagement);
