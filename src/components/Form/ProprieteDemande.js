@@ -73,22 +73,56 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   };
 
   // Mise à jour du numéro de pièce lorsque le pôle change
-  const handlePoleChange = (e) => {
+
+  // const handlePoleChange = (e) => {
+  //   const selectedPole = e.target.value;
+  //   const poleNumber = polesMap[selectedPole] || "0";
+  //   const datePart = getCurrentDate();
+  //   const sequence = "000001"; // Numéro séquentiel par défaut
+
+  //   // Générer le numéro de pièce
+  //   const generatedNumeroPiece = `${poleNumber}${datePart}${sequence}`;
+
+  //   // Mettre à jour le formulaire
+  //   setFormData({
+  //     ...formData,
+  //     services: selectedPole, // Met à jour le pôle sélectionné
+  //     numeroPiece: generatedNumeroPiece, // Met à jour le numéro de pièce
+  //   });
+  // };
+
+  const handlePoleChange = async (e) => {
     const selectedPole = e.target.value;
-    const poleNumber = polesMap[selectedPole] || "0";
+    const poleNumber = polesMap[selectedPole] || "0"; // Récupérer le numéro du pôle
     const datePart = getCurrentDate();
-    const sequence = "000001"; // Numéro séquentiel par défaut
-
-    // Générer le numéro de pièce
-    const generatedNumeroPiece = `${poleNumber}${datePart}${sequence}`;
-
-    // Mettre à jour le formulaire
-    setFormData({
-      ...formData,
-      services: selectedPole, // Met à jour le pôle sélectionné
-      numeroPiece: generatedNumeroPiece, // Met à jour le numéro de pièce
-    });
+  
+    try {
+      // Appeler generate_sequence.php pour récupérer la séquence
+      const response = await fetch("generate_sequence.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ year: new Date().getFullYear() }),
+      });
+  
+      const data = await response.json();
+  
+      if (data.sequence) {
+        const generatedNumeroPiece = `${poleNumber}${datePart}${data.sequence}`;
+  
+        // Mettre à jour le formulaire avec le numéro généré
+        setFormData({
+          ...formData,
+          services: selectedPole,
+          numeroPiece: generatedNumeroPiece,
+        });
+      } else {
+        console.error("Erreur lors de la récupération de la séquence :", data.error);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'appel à generate_sequence.php :", error);
+    }
   };
+  
 
   // Filtrage des catégories en fonction du budget/action sélectionné
   const filteredCategories = categories.filter(

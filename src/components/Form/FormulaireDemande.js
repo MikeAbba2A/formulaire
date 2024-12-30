@@ -1,5 +1,19 @@
 import React, { useState } from "react";
-import { Box, Button, Paper, Typography } from "@mui/material";
+import {
+  Box,
+  Grid,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  Typography,
+  Button,
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import HeaderBar from "./HeaderBar";
 import AdresseSection from "./AdresseSection";
 import FournisseurSection from "./FournisseurSection";
@@ -39,6 +53,8 @@ const FormulaireDemande = () => {
     });
 
     const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
+    const [isTransversal, setIsTransversal] = useState(false);
+    const [open, setOpen] = useState(false); // État pour la popup
 
     const handleFormDataChange = (e) => {
       const { name, value } = e.target;
@@ -81,47 +97,89 @@ const FormulaireDemande = () => {
       setFormData({ ...formData, pieceJointe: file });
     };
 
-    const [isTransversal, setIsTransversal] = useState(false);
+    
 
-    const handleSubmit = (e) => {
-      e.preventDefault();
-      console.log("Formulaire soumis :", formData);
-      const dataSoumise = {
-        ...formData,
-        lignesEngagement, // Inclut les lignes d'engagement
-      };
-      console.log("Formulaire soumis :", dataSoumise);
+  //   const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   const dataSoumise = {
+  //     ...formData,
+  //     lignesEngagement,
+  //   };
 
-       // Envoi des données via Fetch API
-       fetch("process_form.php", {
+  //   try {
+  //     const response = await fetch("process_form.php", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(dataSoumise),
+  //     });
+
+  //     const data = await response.json();
+
+  //     if (data.status === "success") {
+  //       console.log("Formulaire soumis avec succès !");
+  //       setOpen(true); // Ouvre la popup
+  //     } else {
+  //       console.error("Erreur lors de la soumission :", data.message);
+  //       alert("Une erreur est survenue lors de la soumission.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Erreur lors de la soumission :", error);
+  //     alert("Une erreur est survenue.");
+  //   }
+  // };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const dataSoumise = {
+      ...formData,
+      lignesEngagement,
+    };
+
+    try {
+      const response = await fetch("process_form.php", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(dataSoumise),
-      })
-        .then((response) => response.text()) // Utilisez `.text()` au lieu de `.json()` pour voir la réponse brute
-        .then((data) => {
-          console.log("Réponse brute du serveur :", data);
-          try {
-            const parsedData = JSON.parse(data);
-            console.log("Réponse JSON parsée :", parsedData);
-          } catch (error) {
-            console.error("Erreur lors du parsing JSON :", error);
-          }
-        })
-        .catch((error) => {
-          console.error("Erreur lors de l'envoi du formulaire :", error);
-        });
+      });
 
+      const data = await response.json();
 
-    };
+      if (data.status === "success") {
+        console.log("Formulaire soumis avec succès !");
+        setOpen(true); // Ouvre la popup
+      } else {
+        console.error("Erreur lors de la soumission :", data.message);
+        alert("Une erreur est survenue lors de la soumission.");
+      }
+    } catch (error) {
+      console.error("Erreur lors de la soumission :", error);
+      alert("Une erreur est survenue.");
+    }
+  };
 
+  const handleClose = () => {
+    setOpen(false); // Ferme la popup
+    if (window.opener) {
+      window.close(); // Ferme la fenêtre si elle a été ouverte via JavaScript
+    } else {
+      alert("Cette fenêtre ne peut pas être fermée automatiquement.");
+    }
+  };
+
+  const handleDuplicate = () => {
+    console.log("Duplication de la demande d'achat.");
+    // Logique pour dupliquer la demande d'achat
+    setOpen(false);
+  };
    
 
   return (
     <>
-      {/* Barre rouge */}
+      {/* Barre verte */}
       <HeaderBar />
 
       {/* Contenu du formulaire */}
@@ -135,23 +193,23 @@ const FormulaireDemande = () => {
         }}
       >
         <form onSubmit={handleSubmit}>
-        <Box sx={{ marginBottom: 2 }}>
-            <Box sx={{ marginBottom: 2 }}>
-                <img
-                src={`${process.env.PUBLIC_URL}/vlm_logo.png`}
-                alt="Logo"
-                style={{ height: "100px" }}
-                />
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="body1">
-                    <strong>Date :</strong> {today}
-                </Typography>
-                <Typography variant="body1">
-                <strong>Initiateur de la demande :</strong> Admin 365
-                </Typography>
-            </Box>
-        </Box>
+          <Box sx={{ marginBottom: 2 }}>
+              <Box sx={{ marginBottom: 2 }}>
+                  <img
+                  src={`${process.env.PUBLIC_URL}/vlm_logo.png`}
+                  alt="Logo"
+                  style={{ height: "100px" }}
+                  />
+              </Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1">
+                      <strong>Date :</strong> {today}
+                  </Typography>
+                  <Typography variant="body1">
+                  <strong>Initiateur de la demande :</strong> Admin 365
+                  </Typography>
+              </Box>
+          </Box>
 
         
           {/* Section Adresses */}
@@ -192,15 +250,11 @@ const FormulaireDemande = () => {
             setFormData={setFormData}
           />
 
-
-
-
-        
           <InformationLivraison 
-                formData={formData}
-                handleChange={handleChange}
-                handleFileChange={handleFileChange}
-            />
+              formData={formData}
+              handleChange={handleChange}
+              handleFileChange={handleFileChange}
+          />
 
           
           {/* Bouton de soumission */}
@@ -217,6 +271,27 @@ const FormulaireDemande = () => {
           </Box>
         </form>
       </Paper>
+
+      {/* Popup */}
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Demande d'achat créée</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            La demande d'achat a été créée avec succès, elle est en cours de
+            dépôt sur le classeur.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Fermer la fenêtre
+          </Button>
+          <Button onClick={handleDuplicate} color="secondary">
+            Dupliquer la D.A.
+          </Button>
+        </DialogActions>
+      </Dialog>  
+
+
     </>
   );
 };

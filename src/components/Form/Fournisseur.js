@@ -8,6 +8,11 @@ import {
   Typography,
   Button,
   Paper,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from "@mui/material";
 
 const FormulaireDemande = () => {
@@ -20,12 +25,16 @@ const FormulaireDemande = () => {
     copieDocument: false,
   });
 
+
+  const [open, setOpen] = useState(false); // État pour la popup
+
+
   const today = new Date().toLocaleDateString("fr-FR", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
   });
-  console.log(today);
+  
 
 
   const handleChange = (e) => {
@@ -41,6 +50,40 @@ const FormulaireDemande = () => {
     e.preventDefault();
     console.log("Formulaire soumis :", formData);
   };
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  
+  //   try {
+  //     const response = await fetch("process_form.php", {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(formData),
+  //     });
+  
+  //     const data = await response.json();
+  
+  //     if (data.status === "success") {
+  //       console.log("Soumission réussie, affichage de la popup");
+  //       setOpen(true); // Ouvre la popup
+  //     } else {
+  //       alert("Une erreur est survenue lors de la soumission.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Erreur lors de la soumission :", error);
+  //     alert("Une erreur est survenue.");
+  //   }
+  // };
+
+   // Actions pour la popup
+   const handleClose = () => setOpen(false); // Fermer la popup
+
+   const handleDuplicate = () => {
+     setOpen(false); // Fermer la popup
+     setFormData({ ...formData, numeroPiece: "" }); // Réinitialiser le numéro de pièce
+   };
 
   return (
     <Paper
@@ -168,6 +211,10 @@ const FormulaireDemande = () => {
           </Button>
         </Box>
       </form>
+
+
+
+
     </Paper>
   );
 };
