@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Grid,
@@ -24,7 +24,6 @@ import InformationLivraison from "./InformationLivraison";
 
 const FormulaireDemande = () => {
 
-    
 
     const [formData, setFormData] = useState({
         adresseLivraison: "",
@@ -46,15 +45,88 @@ const FormulaireDemande = () => {
         lignesTransversales: false, // Deuxième checkbox
       });
 
+    // const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
+
+    const [lignesEngagement, setLignesEngagement] = useState([
+      { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
+    ]);
+
+    const [isTransversal, setIsTransversal] = useState(false);
+    const [open, setOpen] = useState(false); // État pour la popup
+
+    // Fonction pour charger les données du JSON récupéré
+    // useEffect(() => {
+    //   const urlParams = new URLSearchParams(window.location.search);
+    //   const jsonData = urlParams.get("json");
+    
+    //   if (jsonData) {
+    //     console.log("JSON brut reçu :", jsonData);
+    //     try {
+    //       const parsedData = JSON.parse(jsonData);
+    
+    //       console.log("Données analysées :", parsedData);
+    
+    //       // Mettre à jour les données du formulaire
+    //       setFormData((prev) => ({
+    //         ...prev,
+    //         ...parsedData,
+    //       }));
+    
+    //       // Mettre à jour les lignes d'engagement séparément
+    //       if (parsedData.lignesEngagement) {
+    //         console.log("Lignes d'engagement analysées :", parsedData.lignesEngagement);
+    
+    //         setLignesEngagement(() => {
+    //           console.log("Mise à jour de l'état des lignes d'engagement...");
+    //           return parsedData.lignesEngagement; // Retourne directement les données analysées
+    //         });
+    
+    //         setTimeout(() => {
+    //           console.log("État actuel des lignes d'engagement :", lignesEngagement);
+    //         }, 100); // Vérifie l'état après une petite pause
+    //       }
+    //     } catch (error) {
+    //       console.error("Erreur lors du parsing du JSON :", error);
+    //     }
+    //   }
+    // }, []);
+
+    useEffect(() => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const jsonData = urlParams.get("json");
+  
+      if (jsonData) {
+        console.log("JSON brut reçu :", jsonData);
+        try {
+          const parsedData = JSON.parse(jsonData);
+  
+          console.log("Données analysées :", parsedData);
+  
+          // Mettre à jour les données du formulaire
+          setFormData((prev) => ({
+            ...prev,
+            ...parsedData,
+          }));
+  
+          // Mettre à jour les lignes d'engagement
+          if (parsedData.lignesEngagement) {
+            console.log("Lignes d'engagement analysées :", parsedData.lignesEngagement);
+            setLignesEngagement([...parsedData.lignesEngagement]);
+          }
+        } catch (error) {
+          console.error("Erreur lors du parsing du JSON :", error);
+        }
+      }
+    }, []);
+    
+
     const today = new Date().toLocaleDateString("fr-FR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
 
-    const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
-    const [isTransversal, setIsTransversal] = useState(false);
-    const [open, setOpen] = useState(false); // État pour la popup
+    
 
     const handleFormDataChange = (e) => {
       const { name, value } = e.target;
@@ -70,8 +142,8 @@ const FormulaireDemande = () => {
     
 
     const handleChange = (e) => {
-  const { name, value } = e.target;
-  setFormData({ ...formData, [name]: value });
+      const { name, value } = e.target;
+      setFormData({ ...formData, [name]: value });
     };
 
 
@@ -248,6 +320,7 @@ const FormulaireDemande = () => {
             selectedBudget={formData.budgetsActions}
             onRowsChange={handleRowsChange}
             setFormData={setFormData}
+            initialRows={lignesEngagement}
           />
 
           <InformationLivraison 
@@ -285,9 +358,9 @@ const FormulaireDemande = () => {
           <Button onClick={handleClose} color="primary">
             Fermer la fenêtre
           </Button>
-          <Button onClick={handleDuplicate} color="secondary">
+          {/* <Button onClick={handleDuplicate} color="secondary">
             Dupliquer la D.A.
-          </Button>
+          </Button> */}
         </DialogActions>
       </Dialog>  
 
