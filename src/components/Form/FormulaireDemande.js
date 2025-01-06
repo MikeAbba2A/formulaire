@@ -174,14 +174,21 @@ const FormulaireDemande = () => {
 
     
 
+    // const handleFileChange = (e) => {
+    //   const file = e.target.files[0];
+    //   setFormData({ ...formData, pieceJointe: file });
+    // };
+
     const handleFileChange = (e) => {
       const file = e.target.files[0];
-      setFormData({ ...formData, pieceJointe: file });
+      setFormData((prev) => ({
+        ...prev,
+        pieceJointe: file,
+      }));
     };
 
     
-
-  //   const handleSubmit = async (e) => {
+  // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   const dataSoumise = {
   //     ...formData,
@@ -212,27 +219,32 @@ const FormulaireDemande = () => {
   //   }
   // };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const dataSoumise = {
-      ...formData,
-      lignesEngagement,
-    };
-
+  
+    // Créer l'objet FormData pour envoyer le fichier et les données du formulaire
+    const formDataToSend = new FormData();
+  
+    // Ajouter les champs du formulaire JSON
+    formDataToSend.append("jsonData", JSON.stringify({ ...formData, lignesEngagement }));
+  
+    // Ajouter la pièce jointe si elle existe
+    if (formData.pieceJointe) {
+      formDataToSend.append("pieceJointe", formData.pieceJointe);
+    }
+  
     try {
       const response = await fetch("process_form.php", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataSoumise),
+        body: formDataToSend, // Envoi en tant que multipart/form-data
       });
-
+  
       const data = await response.json();
-
+  
       if (data.status === "success") {
         console.log("Formulaire soumis avec succès !");
-        setOpen(true); // Ouvre la popup
+        setOpen(true); // Ouvre la popup de confirmation
       } else {
         console.error("Erreur lors de la soumission :", data.message);
         alert("Une erreur est survenue lors de la soumission.");
@@ -242,6 +254,7 @@ const FormulaireDemande = () => {
       alert("Une erreur est survenue.");
     }
   };
+  
 
   const handleClose = () => {
     setOpen(false); // Ferme la popup
