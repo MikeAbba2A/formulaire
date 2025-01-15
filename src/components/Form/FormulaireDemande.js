@@ -94,6 +94,7 @@ const FormulaireDemande = () => {
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const jsonData = urlParams.get("json");
+      const action = urlParams.get("action");
     
       if (jsonData) {
         console.log("JSON brut reçu :", jsonData);
@@ -102,13 +103,13 @@ const FormulaireDemande = () => {
     
           console.log("Données analysées :", parsedData);
     
-          // Incrémenter le numéro de pièce
-          if (parsedData.numeroPiece) {
+          // Incrémenter le numéro de pièce uniquement si l'action est "duplicate"
+          if (action === "duplicate" && parsedData.numeroPiece) {
             const currentNumeroPiece = parsedData.numeroPiece;
             const prefix = currentNumeroPiece.slice(0, -6); // Récupère tout sauf les 6 derniers caractères
             const sequence = parseInt(currentNumeroPiece.slice(-6)) + 1; // Incrémente la séquence
             const newNumeroPiece = `${prefix}${sequence.toString().padStart(6, "0")}`; // Reformate avec les zéros
-    
+
             parsedData.numeroPiece = newNumeroPiece; // Met à jour le numéro de pièce
           }
     
@@ -242,6 +243,35 @@ const getCurrentDate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Récupérer Res_Id depuis l'URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const resId = urlParams.get("Res_Id"); // Extraction de Res_Id
+    const etat_action = urlParams.get("action");
+    
+
+    // Envoyer le Res_Id pour le traitement
+  if (etat_action === "edit" && resId) {
+    try {
+      const resIdResponse = await fetch("traitement_res_id.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ resId }), // Envoyer le Res_Id dans le body
+      });
+
+      const resIdData = await resIdResponse.json();
+
+      if (resIdData.status !== "success") {
+        console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
+      } else {
+        console.log("Traitement Res_Id réussi :", resIdData.message);
+      }
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du Res_Id :", error);
+    }
+  }
   
     try {
       // Récupération et incrémentation de la séquence
