@@ -219,25 +219,63 @@ const FormulaireDemande = () => {
   //   }
   // };
 
+// Map des pôles
+const polesMap = {
+  "DG": "0",
+  "PAF": "1",
+  "POGEMOB": "2",
+  "PCOM": "3",
+  "PRECH": "4",
+  "PDONNEES": "5",
+  "PSANTE": "5",
+  "PQDV": "6"
+};
+
+// Fonction pour obtenir la date actuelle au format YYMMDD
+const getCurrentDate = () => {
+  const today = new Date();
+  const year = today.getFullYear().toString().slice(2); // Année sur deux chiffres
+  const month = (today.getMonth() + 1).toString().padStart(2, "0"); // Mois sur deux chiffres
+  const day = today.getDate().toString().padStart(2, "0"); // Jour sur deux chiffres
+  return `${year}${month}${day}`; // Format YYMMDD
+};
 
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    // Créer l'objet FormData pour envoyer le fichier et les données du formulaire
-    const formDataToSend = new FormData();
-  
-    // Ajouter les champs du formulaire JSON
-    formDataToSend.append("jsonData", JSON.stringify({ ...formData, lignesEngagement }));
-  
-    // Ajouter la pièce jointe si elle existe
-    if (formData.pieceJointe) {
-      formDataToSend.append("pieceJointe", formData.pieceJointe);
-    }
-  
     try {
+      // Récupération et incrémentation de la séquence
+      const sequenceResponse = await fetch("generate_sequence.php", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ year: new Date().getFullYear(), preview: false }), // preview:false pour incrémenter
+      });
+  
+      const sequenceData = await sequenceResponse.json();
+  
+      if (!sequenceData.sequence) {
+        throw new Error("Erreur lors de la récupération de la séquence : " + sequenceData.error);
+      }
+  
+      // Construction du numéro de pièce avec la séquence générée
+      const generatedNumeroPiece = `${polesMap[formData.services]}${getCurrentDate()}${sequenceData.sequence}`;
+  
+      // Préparer les données à soumettre avec le numéro de pièce mis à jour
+      const dataSoumise = {
+        ...formData,
+        lignesEngagement,
+        numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
+      };
+  
+      // Soumission des données
       const response = await fetch("process_form.php", {
         method: "POST",
-        body: formDataToSend, // Envoi en tant que multipart/form-data
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataSoumise),
       });
   
       const data = await response.json();
@@ -256,6 +294,7 @@ const FormulaireDemande = () => {
   };
   
 
+ 
   const handleClose = () => {
     setOpen(false); // Ferme la popup
     if (window.opener) {
