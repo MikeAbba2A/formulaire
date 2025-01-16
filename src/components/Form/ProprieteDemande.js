@@ -179,11 +179,15 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
               required
               sx={{ marginBottom: 2 }}
             >
-              {annees.map((annee, index) => (
-                  <MenuItem key={index} value={annee}>
-                    {annee} {/* Affiche les années budgetaires */}
+              {/* Génération dynamique des options N-1, N, N+1 */}
+              {[-1, 0, 1].map((offset) => {
+                const year = new Date().getFullYear() + offset; // Calcule l'année correspondante
+                return (
+                  <MenuItem key={year} value={year}>
+                    {year}
                   </MenuItem>
-                ))}
+                );
+              })}
             </TextField>
 
             {/* Pôle */}
