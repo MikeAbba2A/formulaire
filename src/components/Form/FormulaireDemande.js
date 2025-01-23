@@ -413,6 +413,7 @@ const getCurrentDate = () => {
             onRowsChange={handleRowsChange}
             setFormData={setFormData}
             initialRows={lignesEngagement}
+            selectedPole={formData.services} 
           />
 
           <InformationLivraison 

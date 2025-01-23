@@ -69,6 +69,7 @@ const FournisseurSection = ({ formData, handleChange, setFormData }) => {
           value={formData.numeroPiece || ""}
           InputProps={{ readOnly: true }}
           variant="outlined"
+          disabled 
         />
       </Grid>
     </Grid>

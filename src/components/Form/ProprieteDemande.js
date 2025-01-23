@@ -6,6 +6,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   const [categories, setCategories] = useState([]); // Liste des catégories
   const [poles, setPoles] = useState([]); // Liste des catégories
   const [annees, setAnnees] = useState([]); // Liste des catégories
+  const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
 
   // Map des pôles avec leurs numéros
   const polesMap = {
@@ -63,6 +64,16 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
       .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
   }, []);
 
+  useEffect(() => {
+    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/filtrage_budget_selon_pole.php")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Budgets reçus :", data);
+        setBudgets(data); // Stocke tous les budgets
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+  }, []);
+
   // Fonction pour générer la date au format AAAAMMJJ
   const getCurrentDate = () => {
     const now = new Date();
@@ -80,11 +91,11 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   //   const datePart = getCurrentDate();
   
   //   try {
-  //     // Appeler generate_sequence.php pour récupérer la séquence
+  //     // Appeler generate_sequence.php pour récupérer la séquence (preview sans incrémentation)
   //     const response = await fetch("generate_sequence.php", {
   //       method: "POST",
   //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ year: new Date().getFullYear() }),
+  //       body: JSON.stringify({ year: new Date().getFullYear(), preview: true }),
   //     });
   
   //     const data = await response.json();
@@ -97,6 +108,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   //         ...formData,
   //         services: selectedPole,
   //         numeroPiece: generatedNumeroPiece,
+  //         typeDemande: "achat",
   //       });
   //     } else {
   //       console.error("Erreur lors de la récupération de la séquence :", data.error);
@@ -124,12 +136,19 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
       if (data.sequence) {
         const generatedNumeroPiece = `${poleNumber}${datePart}${data.sequence}`;
   
-        // Mettre à jour le formulaire avec le numéro généré
+        // Filtrer les budgets correspondant au pôle sélectionné
+        const filtered = budgets.filter((item) => item.code_pole === selectedPole);
+  
+        // Mettre à jour le formulaire avec le numéro généré et les budgets filtrés
         setFormData({
           ...formData,
           services: selectedPole,
           numeroPiece: generatedNumeroPiece,
+          typeDemande: "achat",
         });
+  
+        // Mettre à jour les budgets filtrés dans l'état
+        setFilteredBudgets(filtered);
       } else {
         console.error("Erreur lors de la récupération de la séquence :", data.error);
       }
@@ -139,11 +158,14 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   };
   
   
+  
 
   // Filtrage des catégories en fonction du budget/action sélectionné
   const filteredCategories = categories.filter(
     (category) => category.parent === formData.budgetsActions
   );
+
+ 
 
   return (
     <Box sx={{ marginTop: 3, padding: 2 }}>
@@ -210,22 +232,41 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
 
             {/* Budgets / Actions */}
             {!isTransversal && (
-              <TextField
-                select
-                fullWidth
-                label="Budgets / Actions *"
-                name="budgetsActions" // Nom de la propriété
-                value={formData.budgetsActions}
-                onChange={handleChange} // Appelle la fonction parent pour mettre à jour l'état
-                required
-                sx={{ marginBottom: 2 }}
-              >
-                {budgets.map((budget, index) => (
-                  <MenuItem key={index} value={budget}>
-                    {budget} {/* Affiche le budget */}
-                  </MenuItem>
-                ))}
+
+            //   <TextField
+            //     select
+            //     fullWidth
+            //     label="Budgets / Actions *"
+            //     name="budgetsActions" // Nom de la propriété
+            //     value={formData.budgetsActions}
+            //     onChange={handleChange} // Appelle la fonction parent pour mettre à jour l'état
+            //     required
+            //     sx={{ marginBottom: 2 }}
+            //   >
+            //     {budgets.map((budget, index) => (
+            //       <MenuItem key={index} value={budget}>
+            //         {budget} {/* Affiche le budget */}
+            //       </MenuItem>
+            //     ))}
+            // </TextField>
+
+            <TextField
+              select
+              fullWidth
+              label="Budgets / Actions"
+              name="budgetsActions"
+              value={formData.budgetsActions || ""}
+              onChange={handleChange}
+              required
+              sx={{ marginBottom: 2 }}
+            >
+              {filteredBudgets.map((budget, index) => (
+                <MenuItem key={index} value={budget.budget}>
+                  {budget.budget}
+                </MenuItem>
+              ))}
             </TextField>
+
             )}
 
             
