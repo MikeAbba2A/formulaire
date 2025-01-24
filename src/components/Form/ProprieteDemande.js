@@ -74,6 +74,16 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
       .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
   }, []);
 
+  // Initialiser "typeDemande" à "achat" par défaut
+  useEffect(() => {
+    if (!formData.typeDemande) {
+      setFormData((prevData) => ({
+        ...prevData,
+        typeDemande: "achat",
+      }));
+    }
+  }, [formData.typeDemande, setFormData]);
+
   // Fonction pour générer la date au format AAAAMMJJ
   const getCurrentDate = () => {
     const now = new Date();
@@ -182,7 +192,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
               fullWidth
               label="Type de la demande"
               name="typeDemande"
-              value={formData.typeDemande}
+              value={formData.typeDemande || ""}
               onChange={handleChange}
               required
               sx={{ marginBottom: 2 }}
@@ -232,24 +242,6 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
 
             {/* Budgets / Actions */}
             {!isTransversal && (
-
-            //   <TextField
-            //     select
-            //     fullWidth
-            //     label="Budgets / Actions *"
-            //     name="budgetsActions" // Nom de la propriété
-            //     value={formData.budgetsActions}
-            //     onChange={handleChange} // Appelle la fonction parent pour mettre à jour l'état
-            //     required
-            //     sx={{ marginBottom: 2 }}
-            //   >
-            //     {budgets.map((budget, index) => (
-            //       <MenuItem key={index} value={budget}>
-            //         {budget} {/* Affiche le budget */}
-            //       </MenuItem>
-            //     ))}
-            // </TextField>
-
             <TextField
               select
               fullWidth

@@ -136,9 +136,7 @@ const FormulaireDemande = () => {
       month: "2-digit",
       year: "numeric",
     });
-
-    
-
+  
     const handleFormDataChange = (e) => {
       const { name, value } = e.target;
       setFormData((prev) => ({
@@ -151,12 +149,10 @@ const FormulaireDemande = () => {
       setLignesEngagement(updatedRows);
     };
     
-
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData({ ...formData, [name]: value });
     };
-
 
     const handleCheckboxChange = (e, field) => {
         const isChecked = e.target.checked;
@@ -173,8 +169,6 @@ const FormulaireDemande = () => {
         }
     };
 
-    
-
     // const handleFileChange = (e) => {
     //   const file = e.target.files[0];
     //   setFormData({ ...formData, pieceJointe: file });
@@ -188,90 +182,71 @@ const FormulaireDemande = () => {
       }));
     };
 
-    
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   const dataSoumise = {
-  //     ...formData,
-  //     lignesEngagement,
-  //   };
+  const polesMap = {
+    "DG": "0",
+    "PAF": "1",
+    "POGEMOB": "2",
+    "PCOM": "3",
+    "PRECH": "4",
+    "PDONNEES": "5",
+    "PSANTE": "5",
+    "PQDV": "6"
+  };
 
-  //   try {
-  //     const response = await fetch("process_form.php", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //       },
-  //       body: JSON.stringify(dataSoumise),
-  //     });
-
-  //     const data = await response.json();
-
-  //     if (data.status === "success") {
-  //       console.log("Formulaire soumis avec succès !");
-  //       setOpen(true); // Ouvre la popup
-  //     } else {
-  //       console.error("Erreur lors de la soumission :", data.message);
-  //       alert("Une erreur est survenue lors de la soumission.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Erreur lors de la soumission :", error);
-  //     alert("Une erreur est survenue.");
-  //   }
-  // };
-
-// Map des pôles
-const polesMap = {
-  "DG": "0",
-  "PAF": "1",
-  "POGEMOB": "2",
-  "PCOM": "3",
-  "PRECH": "4",
-  "PDONNEES": "5",
-  "PSANTE": "5",
-  "PQDV": "6"
-};
-
-// Fonction pour obtenir la date actuelle au format YYMMDD
-const getCurrentDate = () => {
-  const today = new Date();
-  const year = today.getFullYear().toString().slice(2); // Année sur deux chiffres
-  const month = (today.getMonth() + 1).toString().padStart(2, "0"); // Mois sur deux chiffres
-  const day = today.getDate().toString().padStart(2, "0"); // Jour sur deux chiffres
-  return `${year}${month}${day}`; // Format YYMMDD
-};
+  // Fonction pour obtenir la date actuelle au format YYMMDD
+  const getCurrentDate = () => {
+    const today = new Date();
+    const year = today.getFullYear().toString().slice(2); // Année sur deux chiffres
+    const month = (today.getMonth() + 1).toString().padStart(2, "0"); // Mois sur deux chiffres
+    const day = today.getDate().toString().padStart(2, "0"); // Jour sur deux chiffres
+    return `${year}${month}${day}`; // Format YYMMDD
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    // Calculer le total général
+    const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
+  
+    // Vérifier si le montant total est 0.00
+    if (totalGeneral === 0) {
+      alert("Le montant de la demande d'achat est de 0.00€, validation non permise.");
+      return; // Bloque la validation du formulaire
+    }
 
+    // Récupérer le demandeur depuis l'élément #demandeur
+    const demandeurElement = document.getElementById("demandeur");
+    const demandeur = demandeurElement
+      ? demandeurElement.textContent.replace("Initiateur de la demande :", "").trim()
+      : "Inconnu";
+  
     // Récupérer Res_Id depuis l'URL
     const urlParams = new URLSearchParams(window.location.search);
     const resId = urlParams.get("Res_Id"); // Extraction de Res_Id
     const etat_action = urlParams.get("action");
-    
-
+  
     // Envoyer le Res_Id pour le traitement
-  if (etat_action === "edit" && resId) {
-    try {
-      const resIdResponse = await fetch("traitement_res_id.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ resId }), // Envoyer le Res_Id dans le body
-      });
-
-      const resIdData = await resIdResponse.json();
-
-      if (resIdData.status !== "success") {
-        console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
-      } else {
-        console.log("Traitement Res_Id réussi :", resIdData.message);
+    if (etat_action === "edit" && resId) {
+      try {
+        const resIdResponse = await fetch("traitement_res_id.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ resId }), // Envoyer le Res_Id dans le body
+        });
+  
+        const resIdData = await resIdResponse.json();
+  
+        if (resIdData.status !== "success") {
+          console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
+        } else {
+          console.log("Traitement Res_Id réussi :", resIdData.message);
+        }
+      } catch (error) {
+        console.error("Erreur lors de l'envoi du Res_Id :", error);
       }
-    } catch (error) {
-      console.error("Erreur lors de l'envoi du Res_Id :", error);
     }
-  }
   
     try {
       // Récupération et incrémentation de la séquence
@@ -297,6 +272,7 @@ const getCurrentDate = () => {
         ...formData,
         lignesEngagement,
         numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
+        demandeur,
       };
   
       // Soumission des données
@@ -369,7 +345,7 @@ const getCurrentDate = () => {
                   <Typography variant="body1">
                       <strong>Date :</strong> {today}
                   </Typography>
-                  <Typography variant="body1">
+                  <Typography variant="body1" id="demandeur">
                   <strong>Initiateur de la demande :</strong> Admin 365
                   </Typography>
               </Box>
