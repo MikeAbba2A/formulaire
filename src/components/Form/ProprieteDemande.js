@@ -95,39 +95,6 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
 
   // Mise à jour du numéro de pièce lorsque le pôle change
 
-  // const handlePoleChange = async (e) => {
-  //   const selectedPole = e.target.value;
-  //   const poleNumber = polesMap[selectedPole] || "0"; // Récupérer le numéro du pôle
-  //   const datePart = getCurrentDate();
-  
-  //   try {
-  //     // Appeler generate_sequence.php pour récupérer la séquence (preview sans incrémentation)
-  //     const response = await fetch("generate_sequence.php", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({ year: new Date().getFullYear(), preview: true }),
-  //     });
-  
-  //     const data = await response.json();
-  
-  //     if (data.sequence) {
-  //       const generatedNumeroPiece = `${poleNumber}${datePart}${data.sequence}`;
-  
-  //       // Mettre à jour le formulaire avec le numéro généré
-  //       setFormData({
-  //         ...formData,
-  //         services: selectedPole,
-  //         numeroPiece: generatedNumeroPiece,
-  //         typeDemande: "achat",
-  //       });
-  //     } else {
-  //       console.error("Erreur lors de la récupération de la séquence :", data.error);
-  //     }
-  //   } catch (error) {
-  //     console.error("Erreur lors de l'appel à generate_sequence.php :", error);
-  //   }
-  // };
-
   const handlePoleChange = async (e) => {
     const selectedPole = e.target.value;
     const poleNumber = polesMap[selectedPole] || "0"; // Récupérer le numéro du pôle
@@ -138,7 +105,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
       const response = await fetch("generate_sequence.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ year: new Date().getFullYear(), preview: true }),
+        body: JSON.stringify({ year: new Date().getFullYear(), preview: false }),
       });
   
       const data = await response.json();
@@ -159,6 +126,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
   
         // Mettre à jour les budgets filtrés dans l'état
         setFilteredBudgets(filtered);
+        // startChrono(data.sequence);
       } else {
         console.error("Erreur lors de la récupération de la séquence :", data.error);
       }
@@ -166,16 +134,13 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
       console.error("Erreur lors de l'appel à generate_sequence.php :", error);
     }
   };
-  
-  
-  
+
 
   // Filtrage des catégories en fonction du budget/action sélectionné
+  
   const filteredCategories = categories.filter(
     (category) => category.parent === formData.budgetsActions
   );
-
- 
 
   return (
     <Box sx={{ marginTop: 3, padding: 2 }}>
@@ -192,7 +157,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
               fullWidth
               label="Type de la demande"
               name="typeDemande"
-              value={formData.typeDemande || ""}
+              value={formData.typeDemande}
               onChange={handleChange}
               required
               sx={{ marginBottom: 2 }}
@@ -258,10 +223,7 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
                 </MenuItem>
               ))}
             </TextField>
-
             )}
-
-            
           </Box>
         </Grid>
 

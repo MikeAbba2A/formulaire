@@ -34,7 +34,7 @@ const FormulaireDemande = () => {
     month: "2-digit",
     year: "numeric",
   });
-  
+
 
 
   const handleChange = (e) => {
@@ -53,7 +53,7 @@ const FormulaireDemande = () => {
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
-  
+
   //   try {
   //     const response = await fetch("process_form.php", {
   //       method: "POST",
@@ -62,9 +62,9 @@ const FormulaireDemande = () => {
   //       },
   //       body: JSON.stringify(formData),
   //     });
-  
+
   //     const data = await response.json();
-  
+
   //     if (data.status === "success") {
   //       console.log("Soumission réussie, affichage de la popup");
   //       setOpen(true); // Ouvre la popup
@@ -77,13 +77,13 @@ const FormulaireDemande = () => {
   //   }
   // };
 
-   // Actions pour la popup
-   const handleClose = () => setOpen(false); // Fermer la popup
+    // Actions pour la popup
+  const handleClose = () => setOpen(false); // Fermer la popup
 
-   const handleDuplicate = () => {
-     setOpen(false); // Fermer la popup
-     setFormData({ ...formData, numeroPiece: "" }); // Réinitialiser le numéro de pièce
-   };
+  const handleDuplicate = () => {
+    setOpen(false); // Fermer la popup
+    setFormData({ ...formData, numeroPiece: "" }); // Réinitialiser le numéro de pièce
+  };
 
   return (
     <Paper

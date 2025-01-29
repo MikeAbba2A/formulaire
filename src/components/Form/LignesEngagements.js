@@ -68,6 +68,7 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
       setRows(initialRows);
     }
   }, [initialRows]);
+  
 
   const handleAddRow = () => {
     const updatedRows = [

@@ -24,7 +24,6 @@ import InformationLivraison from "./InformationLivraison";
 
 const FormulaireDemande = () => {
 
-
     const [formData, setFormData] = useState({
         adresseLivraison: "",
         adresseFacturation: "",
@@ -45,13 +44,12 @@ const FormulaireDemande = () => {
         lignesTransversales: false, // Deuxième checkbox
       });
 
-    // const [lignesEngagement, setLignesEngagement] = useState([]); // État pour les lignes
-
     const [lignesEngagement, setLignesEngagement] = useState([
       { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
     ]);
 
     const [isTransversal, setIsTransversal] = useState(false);
+
     const [open, setOpen] = useState(false); // État pour la popup
 
     // Fonction pour charger les données du JSON récupéré
@@ -129,7 +127,6 @@ const FormulaireDemande = () => {
         }
       }
     }, []);
-    
 
     const today = new Date().toLocaleDateString("fr-FR", {
       day: "2-digit",
@@ -169,11 +166,6 @@ const FormulaireDemande = () => {
         }
     };
 
-    // const handleFileChange = (e) => {
-    //   const file = e.target.files[0];
-    //   setFormData({ ...formData, pieceJointe: file });
-    // };
-
     const handleFileChange = (e) => {
       const file = e.target.files[0];
       setFormData((prev) => ({
@@ -182,7 +174,7 @@ const FormulaireDemande = () => {
       }));
     };
 
-  const polesMap = {
+    const polesMap = {
     "DG": "0",
     "PAF": "1",
     "POGEMOB": "2",
@@ -191,18 +183,18 @@ const FormulaireDemande = () => {
     "PDONNEES": "5",
     "PSANTE": "5",
     "PQDV": "6"
-  };
+    };
 
-  // Fonction pour obtenir la date actuelle au format YYMMDD
-  const getCurrentDate = () => {
+    // Fonction pour obtenir la date actuelle au format YYMMDD
+    const getCurrentDate = () => {
     const today = new Date();
     const year = today.getFullYear().toString().slice(2); // Année sur deux chiffres
     const month = (today.getMonth() + 1).toString().padStart(2, "0"); // Mois sur deux chiffres
     const day = today.getDate().toString().padStart(2, "0"); // Jour sur deux chiffres
     return `${year}${month}${day}`; // Format YYMMDD
-  };
+    };
 
-  const handleSubmit = async (e) => {
+    const handleSubmit = async (e) => {
     e.preventDefault();
   
     // Calculer le total général
@@ -297,18 +289,16 @@ const FormulaireDemande = () => {
       console.error("Erreur lors de la soumission :", error);
       alert("Une erreur est survenue.");
     }
-  };
+    };
   
-
- 
-  const handleClose = () => {
-    setOpen(false); // Ferme la popup
-    if (window.opener) {
-      window.close(); // Ferme la fenêtre si elle a été ouverte via JavaScript
-    } else {
-      alert("Cette fenêtre ne peut pas être fermée automatiquement.");
-    }
-  };
+    const handleClose = () => {
+      setOpen(false); // Ferme la popup
+      if (window.opener) {
+        window.close(); // Ferme la fenêtre si elle a été ouverte via JavaScript
+      } else {
+        alert("Cette fenêtre ne peut pas être fermée automatiquement.");
+      }
+    };
 
   const handleDuplicate = () => {
     console.log("Duplication de la demande d'achat.");
@@ -368,9 +358,6 @@ const FormulaireDemande = () => {
             handleCheckboxChange={handleCheckboxChange}
           />
 
-
-
-          
           {/* Section Propriété de la demande */}
           <ProprieteDemande 
             formData={formData} 
@@ -398,7 +385,6 @@ const FormulaireDemande = () => {
               handleFileChange={handleFileChange}
           />
 
-          
           {/* Bouton de soumission */}
           <Box sx={{ textAlign: "center", marginTop: 3 }}>
             <Button
@@ -432,7 +418,6 @@ const FormulaireDemande = () => {
           </Button> */}
         </DialogActions>
       </Dialog>  
-
 
     </>
   );
