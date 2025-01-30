@@ -49,6 +49,7 @@ const FormulaireDemande = () => {
     const [isTransversal, setIsTransversal] = useState(false);
     const [open, setOpen] = useState(false); // État pour la popup
     const [budgetInitial, setBudgetInitial] = useState("non connu");
+    const [budgetRestant, setBudgetRestant] = useState("non connu");
 
     // Fonction pour charger les données du JSON récupéré
     // useEffect(() => {
@@ -313,24 +314,28 @@ const FormulaireDemande = () => {
       });
   
       const data = await response.json();
-
-      console.log("Données envoyées au PHP :", {
-        annee: formData.exerciceBudgetaire,
-        code_pole: formData.services,
-        actions: formData.budgetsActions,  // Vérifie que cette valeur n'est pas vide
-        categorie: categorie
-      });
-  
-      if (data.montant_initial) {
-        console.log(data.montant_initial)
-        setBudgetInitial(data.montant_initial); // Retourne le montant initial
-      }
+      return data.montant_initial || "non connu";
     } catch (error) {
       console.error("Erreur lors de la récupération du budget initial :", error);
-      return "non connu"; // En cas d'erreur
+      return "non connu";
     }
   };
-   
+
+  const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
+    try {
+      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
+      });
+  
+      const data2 = await response.json();
+      return data2.montant_restant || "non connu";
+    } catch (error) {
+      console.error("Erreur lors de la récupération du budget initial :", error);
+      return "non connu";
+    }
+  };
 
   return (
     <>
@@ -391,6 +396,8 @@ const FormulaireDemande = () => {
             setFormData={setFormData}
             fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
+            fetchBudgetRestant={fetchBudgetRestant}
+            budgetRestant={budgetRestant}
           />
 
           {/* Section Propriété de la demande */}
@@ -404,6 +411,8 @@ const FormulaireDemande = () => {
             setFormData={setFormData}
             fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
+            fetchBudgetRestant={fetchBudgetRestant}
+            budgetRestant={budgetRestant}
             initialRows={lignesEngagement}
             selectedPole={formData.services} 
           />

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Grid, MenuItem, TextField, Typography, Box } from "@mui/material";
 
-const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData, fetchBudgetInitial, budgetInitial }) => {
+const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData, fetchBudgetInitial, budgetInitial, fetchBudgetRestant, budgetRestant }) => {
   const [budgets, setBudgets] = useState([]); // Liste des budgets/actions
   const [categories, setCategories] = useState([]); // Liste des catégories
   const [poles, setPoles] = useState([]); // Liste des catégories
@@ -147,6 +147,20 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData, 
       }
     };
     updateBudgetInitial();
+  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
+
+  useEffect(() => {
+    const updateBudgetRestant = async () => {
+      if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
+        const montant = await fetchBudgetRestant(
+          formData.exerciceBudgetaire,
+          formData.services,
+          formData.budgetsActions,
+          "" // Catégorie vide ici
+        );
+      }
+    };
+    updateBudgetRestant();
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   return (
