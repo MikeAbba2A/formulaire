@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Grid, MenuItem, TextField, Typography, Box } from "@mui/material";
 
-const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }) => {
+const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData, fetchBudgetInitial, budgetInitial }) => {
   const [budgets, setBudgets] = useState([]); // Liste des budgets/actions
   const [categories, setCategories] = useState([]); // Liste des catégories
   const [poles, setPoles] = useState([]); // Liste des catégories
@@ -135,129 +135,114 @@ const ProprieteDemande = ({ formData, handleChange, isTransversal, setFormData }
     }
   };
 
-
-  // Filtrage des catégories en fonction du budget/action sélectionné
-  
-  const filteredCategories = categories.filter(
-    (category) => category.parent === formData.budgetsActions
-  );
+  useEffect(() => {
+    const updateBudgetInitial = async () => {
+      if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
+        const montant = await fetchBudgetInitial(
+          formData.exerciceBudgetaire,
+          formData.services,
+          formData.budgetsActions,
+          "" // Catégorie vide ici
+        );
+      }
+    };
+    updateBudgetInitial();
+  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   return (
-    <Box sx={{ marginTop: 3, padding: 2 }}>
-      <Grid container spacing={4}>
-        {/* Propriété de la demande */}
-        <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            Propriété de la demande
-          </Typography>
-          <Box>
-            {/* Type de demande */}
-            <TextField
-              select
-              fullWidth
-              label="Type de la demande"
-              name="typeDemande"
-              value={formData.typeDemande}
-              onChange={handleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              <MenuItem value="achat">Demande d'achat</MenuItem>
-            </TextField>
+    <Box 
+  sx={{ 
+    marginTop: 3, 
+    padding: 2, 
+    display: "flex", 
+    justifyContent: "center" // Centre horizontalement
+  }}
+>
+  <Grid container spacing={4} justifyContent="center">
+    {/* Propriété de la demande */}
+    <Grid item xs={12} md={6}>
+      <Typography variant="h6" gutterBottom>
+        Propriété de la demande
+      </Typography>
+      <Box>
+        {/* Type de demande */}
+        <TextField
+          select
+          fullWidth
+          label="Type de la demande"
+          name="typeDemande"
+          value={formData.typeDemande}
+          onChange={handleChange}
+          required
+          sx={{ marginBottom: 2 }}
+        >
+          <MenuItem value="achat">Demande d'achat</MenuItem>
+        </TextField>
 
-            {/* Exercice budgétaire */}
-            <TextField
-              select
-              fullWidth
-              label="Exercice budgétaire"
-              name="exerciceBudgetaire"
-              value={formData.exerciceBudgetaire}
-              onChange={handleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {/* Génération dynamique des options N-1, N, N+1 */}
-              {[-1, 0, 1].map((offset) => {
-                const year = new Date().getFullYear() + offset; // Calcule l'année correspondante
-                return (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                );
-              })}
-            </TextField>
+        {/* Exercice budgétaire */}
+        <TextField
+          select
+          fullWidth
+          label="Exercice budgétaire"
+          name="exerciceBudgetaire"
+          value={formData.exerciceBudgetaire}
+          onChange={handleChange}
+          required
+          sx={{ marginBottom: 2 }}
+        >
+          {/* Génération dynamique des options N-1, N, N+1 */}
+          {[-1, 0, 1].map((offset) => {
+            const year = new Date().getFullYear() + offset; // Calcule l'année correspondante
+            return (
+              <MenuItem key={year} value={year}>
+                {year}
+              </MenuItem>
+            );
+          })}
+        </TextField>
 
-            {/* Pôle */}
-            <TextField
-              select
-              fullWidth
-              label="Pôle"
-              name="services"
-              value={formData.services || ""}
-              onChange={handlePoleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {poles.map((pole, index) => (
-                  <MenuItem key={index} value={pole}>
-                    {pole} {/* Affiche les pôles */}
-                  </MenuItem>
-                ))}
-            </TextField>
+        {/* Pôle */}
+        <TextField
+          select
+          fullWidth
+          label="Pôle"
+          name="services"
+          value={formData.services || ""}
+          onChange={handlePoleChange}
+          required
+          sx={{ marginBottom: 2 }}
+        >
+          {poles.map((pole, index) => (
+            <MenuItem key={index} value={pole}>
+              {pole} {/* Affiche les pôles */}
+            </MenuItem>
+          ))}
+        </TextField>
 
-            {/* Budgets / Actions */}
-            {!isTransversal && (
-            <TextField
-              select
-              fullWidth
-              label="Budgets / Actions"
-              name="budgetsActions"
-              value={formData.budgetsActions || ""}
-              onChange={handleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {filteredBudgets.map((budget, index) => (
-                <MenuItem key={index} value={budget.budget}>
-                  {budget.budget}
-                </MenuItem>
-              ))}
-            </TextField>
-            )}
-          </Box>
-        </Grid>
-
-        {/* Gestion des budgets */}
-        <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            Gestion des budgets
-          </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 2,
-              backgroundColor: "#f4f4f4",
-              padding: 2,
-              borderRadius: "8px",
-            }}
+        {/* Budgets / Actions */}
+        {!isTransversal && (
+          <TextField
+            select
+            fullWidth
+            label="Budgets / Actions"
+            name="budgetsActions"
+            value={formData.budgetsActions || ""}
+            onChange={handleChange}
+            required
+            sx={{ marginBottom: 2 }}
           >
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body1">Budget initial</Typography>
-              <Typography variant="body1" color="textSecondary">
-                {formData.budgetInitial || "non connu"}
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-              <Typography variant="body1">Budget restant</Typography>
-              <Typography variant="body1" color="textSecondary">
-                {formData.budgetRestant || "non connu"}
-              </Typography>
-            </Box>
-          </Box>
-        </Grid>
-      </Grid>
-    </Box>
+            {filteredBudgets.map((budget, index) => (
+              <MenuItem key={index} value={budget.budget}>
+                {budget.budget}
+              </MenuItem>
+            ))}
+          </TextField>
+        )}
+      </Box>
+    </Grid>
+  </Grid>
+</Box>
+
   );
 };
 

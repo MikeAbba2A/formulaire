@@ -10,7 +10,7 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
-const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRowsChange, initialRows = [] }) => {
+const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudget, fetchBudgetInitial, budgetInitial, onRowsChange, initialRows = [] }) => {
   const [rows, setRows] = useState([
     { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
   ]);
@@ -18,6 +18,20 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
   // const [budgets, setBudgets] = useState([]); // Liste des budgets
   const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
   const [categories, setCategories] = useState([]); // Liste des catégories
+
+  useEffect(() => {
+      const updateBudgetInitial = async () => {
+        if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
+          const montant = await fetchBudgetInitial(
+            formData.exerciceBudgetaire,
+            formData.services,
+            formData.budgetsActions,
+            "" // Catégorie vide ici
+          );
+        }
+      };
+      updateBudgetInitial();
+    }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   // Charger les budgets
   useEffect(() => {
@@ -85,19 +99,51 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
     onRowsChange(updatedRows); // Met à jour au parent
   };
 
-  const handleChange = (index, field, value) => {
+  // const handleChange = (index, field, value) => {
+  //   const updatedRows = [...rows];
+  //   updatedRows[index][field] = value;
+
+  //   // Recalculer le total
+  //   if (field === "quantite" || field === "prixUnitaire") {
+  //     updatedRows[index]["total"] =
+  //       parseFloat(updatedRows[index].quantite || 0) *
+  //       parseFloat(updatedRows[index].prixUnitaire || 0);
+  //   }
+
+  //   setRows(updatedRows);
+  //   onRowsChange(updatedRows); // Transmet l'état au composant parent
+  // };
+
+  const handleChange = async (index, field, value) => {
     const updatedRows = [...rows];
     updatedRows[index][field] = value;
-
-    // Recalculer le total
+  
+    // Recalculer le total si la quantité ou le prix change
     if (field === "quantite" || field === "prixUnitaire") {
       updatedRows[index]["total"] =
         parseFloat(updatedRows[index].quantite || 0) *
         parseFloat(updatedRows[index].prixUnitaire || 0);
     }
-
     setRows(updatedRows);
-    onRowsChange(updatedRows); // Transmet l'état au composant parent
+    onRowsChange(updatedRows);
+  
+    // Si la catégorie change, récupérer le budget initial
+    if (field === "categorie" && value) {
+      if (!formData || !selectedPole) {
+        console.error("Les valeurs de formData ou selectedPole sont manquantes");
+        return;
+      }
+  
+      // S'assurer que `actions` contient toujours une valeur correcte
+      const selectedBudget = updatedRows[index].budgetAction || formData.budgetsActions;
+
+      const montant = await fetchBudgetInitial(
+        formData.exerciceBudgetaire,
+        selectedPole,
+        selectedBudget,  // ✅ Toujours conserver la valeur du budget sélectionné
+        value
+      );
+    }
   };
 
   const totalGeneral = rows.reduce((acc, row) => acc + row.total, 0);
@@ -123,7 +169,7 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
           <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
             {/* Budgets / Actions */}
             {isTransversal && (
-              <Grid item xs={12} md={2}>
+              <Grid item xs={10} md={2}>
                 <TextField
                   select
                   fullWidth
@@ -160,7 +206,7 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
             </Grid>
 
             {/* Quantité */}
-            <Grid item xs={12} md={2}>
+            <Grid item xs={6} md={1}>
               <TextField
                 fullWidth
                 type="number"
@@ -171,7 +217,7 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
             </Grid>
 
             {/* Prix unitaire */}
-            <Grid item xs={12} md={2}>
+            <Grid item xs={6} md={1}>
               <TextField
                 fullWidth
                 type="number"
@@ -182,7 +228,7 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
             </Grid>
 
             {/* Total */}
-            <Grid item xs={12} md={2}>
+            <Grid item xs={6} md={1}>
               <TextField
                 fullWidth
                 value={row.total.toFixed(2)}
@@ -206,12 +252,48 @@ const LignesEngagements = ({ isTransversal, selectedPole, selectedBudget, onRows
                 </IconButton>
               )}
             </Grid>
+            {/* Gestion des budgets */}
+              <Grid item xs={12} md={3}>
+                
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    backgroundColor: "#f4f4f4",
+                    padding: 2,
+                    borderRadius: "8px",
+                  }}
+                >
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body1">Budget initial</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {budgetInitial}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body1">Budget restant</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {formData.montant_initial || "non connu"}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Grid>
           </Grid>
         );
       })}
 
       {/* Total général */}
-      <Box sx={{ marginTop: 2, textAlign: "right" }}>
+      <Box 
+        sx={{ 
+          marginTop: 2, 
+          display: "flex", 
+          justifyContent: "center", 
+          alignItems: "center", // Centre verticalement
+          height: "100px" // Exemple d'une hauteur fixe pour centrer verticalement
+        }}
+      >
         <Typography variant="h6">
           Total Général : {totalGeneral.toFixed(2)} €
         </Typography>

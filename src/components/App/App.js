@@ -1,11 +1,7 @@
-import Header from "../Header/Header";
-
-
-function App() {
+import FormulaireDemande from "../Form/FormulaireDemande";
+const App = () => {
   return (
-    <div>
-     <Header title="la mucoviscidose , ça paie plus" />
-    </div>
+      <FormulaireDemande />
   );
 }
 
