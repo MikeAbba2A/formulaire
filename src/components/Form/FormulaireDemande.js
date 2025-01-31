@@ -50,8 +50,15 @@ const FormulaireDemande = () => {
     const [open, setOpen] = useState(false); // État pour la popup
     const [budgetInitial, setBudgetInitial] = useState("non connu");
     const [budgetRestant, setBudgetRestant] = useState("non connu");
+    const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
 
-    // Fonction pour charger les données du JSON récupéré
+    const updateBudgetInitial = (index, montant) => {
+      setRowBudgetsInitial((prev) => {
+        const updatedBudgets = [...prev];
+        updatedBudgets[index] = montant;
+        return updatedBudgets;
+      });
+    };
     // useEffect(() => {
     //   const urlParams = new URLSearchParams(window.location.search);
     //   const jsonData = urlParams.get("json");
@@ -195,9 +202,23 @@ const FormulaireDemande = () => {
 
     const handleSubmit = async (e) => {
     e.preventDefault();
+
+     // Vérifier si toutes les lignes ont une catégorie sélectionnée
+    const categorieManquante = lignesEngagement.some((row) => !row.categorie);
+
+    if (categorieManquante) {
+      alert("Toutes les lignes doivent avoir une catégorie sélectionnée.");
+      return; // Bloquer la soumission
+    }
   
     // Calculer le total général
     const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
+    const montantInitialInconnu = rowBudgetsInitial.some((montant) => montant === "non connu");
+
+    if (montantInitialInconnu) {
+      alert("Le montant initial d'une ou plusieurs lignes est 'non connu', validation non permise.");
+      return; // Bloque la validation du formulaire
+    }
   
     // Vérifier si le montant total est 0.00
     if (totalGeneral === 0) {
@@ -415,6 +436,7 @@ const FormulaireDemande = () => {
             budgetRestant={budgetRestant}
             initialRows={lignesEngagement}
             selectedPole={formData.services} 
+            initialBudgetsInitial={rowBudgetsInitial} 
           />
 
           <InformationLivraison 

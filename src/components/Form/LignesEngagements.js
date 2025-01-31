@@ -10,7 +10,7 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 
-const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudget, fetchBudgetInitial, budgetInitial, fetchBudgetRestant, budgetRestant, onRowsChange, initialRows = [] }) => {
+const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudget, fetchBudgetInitial, budgetInitial, fetchBudgetRestant, budgetRestant, onRowsChange, initialRows = [], initialBudgetsInitial, updateBudgetInitial }) => {
   const [rows, setRows] = useState([
     { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
   ]);
@@ -18,9 +18,12 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
   // const [budgets, setBudgets] = useState([]); // Liste des budgets
   const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
   const [categories, setCategories] = useState([]); // Liste des catégories
-  const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]); // État pour les montants initiaux
+  const [rowBudgetsInitial, setRowBudgetsInitial] = useState(initialBudgetsInitial || []); // ✅ Initialisation propre
   const [rowBudgetsRestant, setRowBudgetsRestant] = useState([]); 
   
+  useEffect(() => {
+    setRowBudgetsInitial(initialBudgetsInitial || []);
+  }, [initialBudgetsInitial]);
 
   useEffect(() => {
       const updateBudgetInitial = async () => {
@@ -36,19 +39,19 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
       updateBudgetInitial();
     }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
-    useEffect(() => {
-      const updateBudgetRestant = async () => {
-        if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
-          const montant = await fetchBudgetRestant (
-            formData.exerciceBudgetaire,
-            formData.services,
-            formData.budgetsActions,
-            "" // Catégorie vide ici
-          );
-        }
-      };
-      updateBudgetRestant ();
-    }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
+  useEffect(() => {
+    const updateBudgetRestant = async () => {
+      if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
+        const montant = await fetchBudgetRestant (
+          formData.exerciceBudgetaire,
+          formData.services,
+          formData.budgetsActions,
+          "" // Catégorie vide ici
+        );
+      }
+    };
+    updateBudgetRestant ();
+  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   // Charger les budgets
   useEffect(() => {
@@ -124,8 +127,60 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
     onRowsChange(updatedRows);
   };
   
+  // const handleChange = async (index, field, value) => {
+  //   const updatedRows = [...rows];
+  //   updatedRows[index][field] = value;
   
+  //   // Recalculer le total si la quantité ou le prix change
+  //   if (field === "quantite" || field === "prixUnitaire") {
+  //     updatedRows[index]["total"] =
+  //       parseFloat(updatedRows[index].quantite || 0) *
+  //       parseFloat(updatedRows[index].prixUnitaire || 0);
+  //   }
+  
+  //   setRows(updatedRows);
+  //   onRowsChange(updatedRows);
+  
+  //   // Si la catégorie change, récupérer le montant initial pour cette ligne
+  //   if (field === "categorie" && value) {
+  //     if (!formData || !selectedPole) {
+  //       console.error("Les valeurs de formData ou selectedPole sont manquantes");
+  //       return;
+  //     }
+  
+  //     const selectedBudget = updatedRows[index].budgetAction || formData.budgetsActions;
+  
+  //     try {
+  //       const montantInitial = await fetchBudgetInitial(
+  //         formData.exerciceBudgetaire,
+  //         selectedPole,
+  //         selectedBudget,
+  //         value
+  //       );
+  
+  //       const montantRestant = await fetchBudgetRestant(
+  //         formData.exerciceBudgetaire,
+  //         selectedPole,
+  //         selectedBudget,
+  //         value
+  //       );
+  
+  //       // Mettre à jour les montants pour cette ligne
+  //     const updatedBudgetsInitial = [...rowBudgetsInitial];
+  //     const updatedBudgetsRestant = [...rowBudgetsRestant];
 
+  //     updatedBudgetsInitial[index] = montantInitial;
+  //     updatedBudgetsRestant[index] = montantRestant;
+
+  //     setRowBudgetsInitial(updatedBudgetsInitial);
+  //     setRowBudgetsRestant(updatedBudgetsRestant);
+
+  //     } catch (error) {
+  //       console.error("Erreur lors de la récupération du budget initial :", error);
+  //     }
+  //   }
+  // };
+  
   const handleChange = async (index, field, value) => {
     const updatedRows = [...rows];
     updatedRows[index][field] = value;
@@ -163,25 +218,32 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
           selectedBudget,
           value
         );
-  
+
+        // Vérification : Bloquer si le montant initial est "non connu"
+        if (montantInitial === "non connu") {
+          alert("Le montant initial est 'non connu'. Veuillez sélectionner une autre catégorie.");
+          updatedRows[index]["categorie"] = ""; // Réinitialiser la catégorie
+          setRows(updatedRows);
+          onRowsChange(updatedRows);
+          return; // Stopper l'exécution ici
+        }
+
         // Mettre à jour les montants pour cette ligne
-      const updatedBudgetsInitial = [...rowBudgetsInitial];
-      const updatedBudgetsRestant = [...rowBudgetsRestant];
+        const updatedBudgetsInitial = [...rowBudgetsInitial];
+        const updatedBudgetsRestant = [...rowBudgetsRestant];
 
-      updatedBudgetsInitial[index] = montantInitial;
-      updatedBudgetsRestant[index] = montantRestant;
+        updatedBudgetsInitial[index] = montantInitial;
+        updatedBudgetsRestant[index] = montantRestant;
 
-      setRowBudgetsInitial(updatedBudgetsInitial);
-      setRowBudgetsRestant(updatedBudgetsRestant);
+        setRowBudgetsInitial(updatedBudgetsInitial);
+        setRowBudgetsRestant(updatedBudgetsRestant);
 
       } catch (error) {
         console.error("Erreur lors de la récupération du budget initial :", error);
       }
     }
-  };
-  
-  
-  
+};
+
 
   const totalGeneral = rows.reduce((acc, row) => acc + row.total, 0);
 
