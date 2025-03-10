@@ -21,79 +21,69 @@ import CheckboxSection from "./CheckboxSection";
 import ProprieteDemande from "./ProprieteDemande"; // Import du nouveau composant
 import LignesEngagements from "./LignesEngagements";
 import InformationLivraison from "./InformationLivraison";
+import { newRow } from "../_config/config";
+
+
+const initialState = {
+  adresseLivraison: "",
+  adresseFacturation: "",
+  fournisseur: "",
+  numeroPiece: "",
+  copieDocument: false,
+  typeDemande: "",
+  exerciceBudgetaire: "",
+  services: "",
+  budgetsActions: "",
+  budgetInitial: "non connu",
+  budgetRestant: "non connu",
+  dateReception: "",
+  descriptionDemande: "",
+  justification: "",
+  pieceJointe: [],
+  copieDocument: false, // Première checkbox
+  lignesTransversales: false, // Deuxième checkbox
+};
 
 const FormulaireDemande = () => {
-
     const [formData, setFormData] = useState({
-        adresseLivraison: "",
-        adresseFacturation: "",
-        fournisseur: "",
-        numeroPiece: "",
-        copieDocument: false,
-        typeDemande: "",
-        exerciceBudgetaire: "",
-        services: "",
-        budgetsActions: "",
-        budgetInitial: "non connu",
-        budgetRestant: "non connu",
-        dateReception: "",
-        descriptionDemande: "",
-        justification: "",
-        pieceJointe: null,
-        copieDocument: false, // Première checkbox
-        lignesTransversales: false, // Deuxième checkbox
-      });
+      adresseLivraison: "",
+      adresseFacturation: "",
+      fournisseur: "",
+      numeroPiece: "",
+      copieDocument: false,
+      typeDemande: "",
+      exerciceBudgetaire: "",
+      services: "",
+      budgetsActions: "",
+      budgetInitial: "non connu",
+      budgetRestant: "non connu",
+      dateReception: "",
+      descriptionDemande: "",
+      justification: "",
+      pieceJointe: [],
+      copieDocument: false, // Première checkbox
+      lignesTransversales: false, // Deuxième checkbox
+    });
     const [lignesEngagement, setLignesEngagement] = useState([
-      { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
+      newRow
     ]);
-    const [isTransversal, setIsTransversal] = useState(false);
+
     const [open, setOpen] = useState(false); // État pour la popup
     const [budgetInitial, setBudgetInitial] = useState("non connu");
     const [budgetRestant, setBudgetRestant] = useState("non connu");
     const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
+    const [nom, setNom] = useState([]);
+    const [selectedFiles, setSelectedFiles] = useState([]);
 
-    const updateBudgetInitial = (index, montant) => {
-      setRowBudgetsInitial((prev) => {
-        const updatedBudgets = [...prev];
-        updatedBudgets[index] = montant;
-        return updatedBudgets;
-      });
-    };
-    // useEffect(() => {
-    //   const urlParams = new URLSearchParams(window.location.search);
-    //   const jsonData = urlParams.get("json");
-    
-    //   if (jsonData) {
-    //     console.log("JSON brut reçu :", jsonData);
-    //     try {
-    //       const parsedData = JSON.parse(jsonData);
-    
-    //       console.log("Données analysées :", parsedData);
-    
-    //       // Mettre à jour les données du formulaire
-    //       setFormData((prev) => ({
-    //         ...prev,
-    //         ...parsedData,
-    //       }));
-    
-    //       // Mettre à jour les lignes d'engagement séparément
-    //       if (parsedData.lignesEngagement) {
-    //         console.log("Lignes d'engagement analysées :", parsedData.lignesEngagement);
-    
-    //         setLignesEngagement(() => {
-    //           console.log("Mise à jour de l'état des lignes d'engagement...");
-    //           return parsedData.lignesEngagement; // Retourne directement les données analysées
-    //         });
-    
-    //         setTimeout(() => {
-    //           console.log("État actuel des lignes d'engagement :", lignesEngagement);
-    //         }, 100); // Vérifie l'état après une petite pause
-    //       }
-    //     } catch (error) {
-    //       console.error("Erreur lors du parsing du JSON :", error);
-    //     }
-    //   }
-    // }, []);
+    useEffect(() => {
+        fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Catégories reçues :", data);
+            setNom(data);
+          })
+          .catch((error) => console.error("Erreur lors de la récupération de l'utilisateur connecté:", error));
+      }, []);
 
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -148,37 +138,44 @@ const FormulaireDemande = () => {
       }));
     };
 
-    const handleRowsChange = (updatedRows) => {
-      setLignesEngagement(updatedRows);
-    };
     
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData({ ...formData, [name]: value });
     };
 
-    const handleCheckboxChange = (e, field) => {
-        const isChecked = e.target.checked;
-    
-        // Mettre à jour l'état des cases à cocher
+    const handleCheckboxChange = (e) => {
+      const {checked, name} = e.target;
+        const isChecked = checked;
         setFormData((prevData) => ({
         ...prevData,
-        [field]: isChecked,
+        [name]: isChecked,
         }));
-    
-        // Mettre à jour l'état du titre si la checkbox "Lignes d'engagement transversale" est modifiée
-        if (field === "lignesTransversales") {
-        setIsTransversal(isChecked);
-        }
     };
 
-    const handleFileChange = (e) => {
-      const file = e.target.files[0];
-      setFormData((prev) => ({
-        ...prev,
-        pieceJointe: file,
+    // const handleFileChange = (e) => {
+    //   const files = e.target.files;
+    //   setFormData((prevData) => ({
+    //     ...prevData,
+    //     pieceJointe: files,
+    //   }));
+    // };
+
+    const handleFileChange = (event) => {
+      const files = Array.from(event.target.files);
+      
+      // Mise à jour du state formData pour conserver les fichiers
+      setFormData((prevData) => ({
+        ...prevData,
+        pieceJointe: files,
       }));
+    
+      // Mise à jour de selectedFiles pour l'affichage
+      setSelectedFiles(files);
+    
+      console.log("Fichiers sélectionnés :", files);
     };
+    
 
     const polesMap = {
     "DG": "0",
@@ -201,116 +198,188 @@ const FormulaireDemande = () => {
     };
 
     const handleSubmit = async (e) => {
-    e.preventDefault();
-
-     // Vérifier si toutes les lignes ont une catégorie sélectionnée
-    const categorieManquante = lignesEngagement.some((row) => !row.categorie);
-
-    if (categorieManquante) {
-      alert("Toutes les lignes doivent avoir une catégorie sélectionnée.");
-      return; // Bloquer la soumission
-    }
+      e.preventDefault();
   
-    // Calculer le total général
-    const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
-    const montantInitialInconnu = rowBudgetsInitial.some((montant) => montant === "non connu");
+      // Vérifier si toutes les lignes ont une catégorie sélectionnée
+      const categorieManquante = lignesEngagement.some((row) => !row.categorie);
+      if (categorieManquante) {
+        alert("Toutes les lignes doivent avoir une catégorie sélectionnée.");
+        return; // Bloquer la soumission
+      }
+  
+      // Calculer le total général
+      const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
 
-    if (montantInitialInconnu) {
-      alert("Le montant initial d'une ou plusieurs lignes est 'non connu', validation non permise.");
-      return; // Bloque la validation du formulaire
-    }
+      const montantInitialInconnu = rowBudgetsInitial.some((montant) => montant === "non connu");
   
-    // Vérifier si le montant total est 0.00
-    if (totalGeneral === 0) {
-      alert("Le montant de la demande d'achat est de 0.00€, validation non permise.");
-      return; // Bloque la validation du formulaire
-    }
-
-    // Récupérer le demandeur depuis l'élément #demandeur
-    const demandeurElement = document.getElementById("demandeur");
-    const demandeur = demandeurElement
-      ? demandeurElement.textContent.replace("Initiateur de la demande :", "").trim()
-      : "Inconnu";
+      if (montantInitialInconnu) {
+        alert("Le montant initial d'une ou plusieurs lignes est 'non connu', validation non permise.");
+        return; // Bloque la validation du formulaire
+      }
   
-    // Récupérer Res_Id depuis l'URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const resId = urlParams.get("Res_Id"); // Extraction de Res_Id
-    const etat_action = urlParams.get("action");
+      // Vérifier si le montant total est 0.00
+      if (totalGeneral === 0) {
+        alert("Le montant de la demande d'achat est de 0.00€, validation non permise.");
+        return; // Bloque la validation du formulaire
+      }
   
-    // Envoyer le Res_Id pour le traitement
-    if (etat_action === "edit" && resId) {
+      // Récupérer le demandeur depuis l'élément #demandeur
+      const demandeurElement = document.getElementById("demandeur");
+      const demandeur = demandeurElement
+        ? demandeurElement.textContent.replace("Initiateur de la demande :", "").trim()
+        : "Inconnu";
+  
+      // Récupérer Res_Id depuis l'URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const resId = urlParams.get("Res_Id"); // Extraction de Res_Id
+      const etat_action = urlParams.get("action");
+  
+      // Envoyer le Res_Id pour le traitement
+      if (etat_action === "edit" && resId) {
+        try {
+          const resIdResponse = await fetch("traitement_res_id.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ resId }), // Envoyer le Res_Id dans le body
+          });
+  
+          const resIdData = await resIdResponse.json();
+  
+          if (resIdData.status !== "success") {
+            console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
+          } else {
+            console.log("Traitement Res_Id réussi :", resIdData.message);
+          }
+        } catch (error) {
+          console.error("Erreur lors de l'envoi du Res_Id :", error);
+        }
+      }
+  
       try {
-        const resIdResponse = await fetch("traitement_res_id.php", {
+        // Récupération et incrémentation de la séquence
+        const sequenceResponse = await fetch("generate_sequence.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ resId }), // Envoyer le Res_Id dans le body
+          body: JSON.stringify({ year: new Date().getFullYear(), preview: false }), // preview:false pour incrémenter
         });
   
-        const resIdData = await resIdResponse.json();
+        const sequenceData = await sequenceResponse.json();
   
-        if (resIdData.status !== "success") {
-          console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
+        if (!sequenceData.sequence) {
+          throw new Error("Erreur lors de la récupération de la séquence : " + sequenceData.error);
+        }
+  
+        // Construction du numéro de pièce avec la séquence générée
+        const generatedNumeroPiece = `${polesMap[formData.services]}${getCurrentDate()}${sequenceData.sequence}`;
+  
+        // Préparer les données à soumettre avec le numéro de pièce mis à jour
+        const dataSoumise = {
+          ...formData,
+          lignesEngagement,
+          numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
+          demandeur,
+        };
+  
+        // Soumission des données
+        const response = await fetch("process_form.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(dataSoumise),
+        });
+  
+        const data = await response.json();
+  
+        if (data.status === "success") {
+          console.log("Formulaire soumis avec succès !");
+          setOpen(true); // Ouvre la popup de confirmation
+  
+          // 👉 **ENVOI DE LA PIÈCE JOINTE APRÈS LA VALIDATION**
+          // if (formData.pieceJointe  && formData.pieceJointe.length > 0) {
+          //   // const formDataFile = new FormData();
+          //   // formDataFile.append("pieceJointe", formData.pieceJointe);
+          //   // formDataFile.append("numeroPiece", generatedNumeroPiece); // Associe la pièce jointe à la demande
+
+          //   const formDataFile = new FormData();
+          //   for (let i = 0; i < formData.pieceJointe.length; i++) {
+          //     formDataFile.append("pieceJointe[]", formData.pieceJointe[i]); // Ajouter chaque fichier
+          //   }
+          //   formDataFile.append("numeroPiece", generatedNumeroPiece); // Ajouter le numéro de pièce
+          
+  
+          //   try {
+          //     const fileResponse = await fetch("upload_file.php", {
+          //       method: "POST",
+          //       body: formDataFile, // Envoi du fichier séparément
+          //     });
+  
+          //     const fileData = await fileResponse.json();
+  
+          //     if (fileData.status === "success") {
+          //       console.log("📂 Pièce jointe envoyée avec succès !");
+          //     } else {
+          //       console.error("⚠️ Erreur lors de l'envoi de la pièce jointe :", fileData.message);
+          //     }
+          //   } catch (error) {
+          //     console.error("⚠️ Erreur lors de l'upload de la pièce jointe :", error);
+          //   }
+          // }
+
+          if (formData.pieceJointe && formData.pieceJointe.length > 0) {
+            const formDataFile = new FormData();
+          
+            // Ajout de toutes les données du formulaire
+            for (const key in formData) {
+              if (formData.hasOwnProperty(key)) {
+                formDataFile.append(key, formData[key]);
+              }
+            }
+          
+            // Ajout des fichiers
+            for (let i = 0; i < formData.pieceJointe.length; i++) {
+              formDataFile.append("pieceJointe[]", formData.pieceJointe[i]); // Ajouter chaque fichier
+            }
+          
+            // Ajout du numéro de pièce
+            formDataFile.append("numeroPiece", generatedNumeroPiece); 
+            formDataFile.append("totalGeneral", totalGeneral);
+            formDataFile.append("lignesEngagement", JSON.stringify(lignesEngagement));
+          
+            try {
+              const fileResponse = await fetch("upload_file.php", {
+                method: "POST",
+                body: formDataFile, // Envoi du fichier avec toutes les données
+              });
+          
+              const fileData = await fileResponse.json();
+          
+              if (fileData.status === "success") {
+                console.log("📂 Pièces jointes envoyées avec succès !");
+              } else {
+                console.error("⚠️ Erreur lors de l'envoi des pièces jointes :", fileData.message);
+              }
+            } catch (error) {
+              console.error("⚠️ Erreur lors de l'upload des pièces jointes :", error);
+            }
+          }
+  
         } else {
-          console.log("Traitement Res_Id réussi :", resIdData.message);
+          console.error("❌ Erreur lors de la soumission :", data.message);
+          alert("Une erreur est survenue lors de la soumission.");
         }
       } catch (error) {
-        console.error("Erreur lors de l'envoi du Res_Id :", error);
+        console.error("❌ Erreur lors de la soumission :", error);
+        alert("Une erreur est survenue.");
       }
-    }
+  };
   
-    try {
-      // Récupération et incrémentation de la séquence
-      const sequenceResponse = await fetch("generate_sequence.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ year: new Date().getFullYear(), preview: false }), // preview:false pour incrémenter
-      });
-  
-      const sequenceData = await sequenceResponse.json();
-  
-      if (!sequenceData.sequence) {
-        throw new Error("Erreur lors de la récupération de la séquence : " + sequenceData.error);
-      }
-  
-      // Construction du numéro de pièce avec la séquence générée
-      const generatedNumeroPiece = `${polesMap[formData.services]}${getCurrentDate()}${sequenceData.sequence}`;
-  
-      // Préparer les données à soumettre avec le numéro de pièce mis à jour
-      const dataSoumise = {
-        ...formData,
-        lignesEngagement,
-        numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
-        demandeur,
-      };
-  
-      // Soumission des données
-      const response = await fetch("process_form.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(dataSoumise),
-      });
-  
-      const data = await response.json();
-  
-      if (data.status === "success") {
-        console.log("Formulaire soumis avec succès !");
-        setOpen(true); // Ouvre la popup de confirmation
-      } else {
-        console.error("Erreur lors de la soumission :", data.message);
-        alert("Une erreur est survenue lors de la soumission.");
-      }
-    } catch (error) {
-      console.error("Erreur lors de la soumission :", error);
-      alert("Une erreur est survenue.");
-    }
-    };
-  
+
+
     const handleClose = () => {
       setOpen(false); // Ferme la popup
       if (window.opener) {
@@ -319,12 +388,6 @@ const FormulaireDemande = () => {
         alert("Cette fenêtre ne peut pas être fermée automatiquement.");
       }
     };
-
-  const handleDuplicate = () => {
-    console.log("Duplication de la demande d'achat.");
-    // Logique pour dupliquer la demande d'achat
-    setOpen(false);
-  };
 
   const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
     try {
@@ -383,12 +446,12 @@ const FormulaireDemande = () => {
                   />
               </Box>
               <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                  <Typography variant="body1">
-                      <strong>Date :</strong> {today}
-                  </Typography>
-                  <Typography variant="body1" id="demandeur">
-                  <strong>Initiateur de la demande :</strong> Admin 365
-                  </Typography>
+                <Typography variant="body1">
+                  <strong>Date :</strong> {today}
+                </Typography>
+                <Typography variant="body1" id="demandeur">
+                  <strong>Initiateur de la demande :</strong> {nom || "Non connu..."}
+                </Typography>
               </Box>
           </Box>
 
@@ -413,7 +476,6 @@ const FormulaireDemande = () => {
           <ProprieteDemande 
             formData={formData} 
             handleChange={handleFormDataChange} 
-            isTransversal={isTransversal} 
             setFormData={setFormData}
             fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
@@ -425,16 +487,15 @@ const FormulaireDemande = () => {
           <LignesEngagements 
             formData={formData} 
             handleChange={handleChange} 
-            isTransversal={isTransversal} 
             selectedBudgetAction={formData.budgetsActions}
             selectedBudget={formData.budgetsActions}
-            onRowsChange={handleRowsChange}
+            lignesEngagements={lignesEngagement}
+            setLignesEngagement={setLignesEngagement}
             setFormData={setFormData}
             fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
             fetchBudgetRestant={fetchBudgetRestant}
             budgetRestant={budgetRestant}
-            initialRows={lignesEngagement}
             selectedPole={formData.services} 
             initialBudgetsInitial={rowBudgetsInitial} 
           />
@@ -443,6 +504,7 @@ const FormulaireDemande = () => {
               formData={formData}
               handleChange={handleChange}
               handleFileChange={handleFileChange}
+              selectedFiles={selectedFiles} 
           />
 
           {/* Bouton de soumission */}

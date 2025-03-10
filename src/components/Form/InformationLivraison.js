@@ -1,7 +1,8 @@
 import React from "react";
 import { Box, Grid, TextField, Typography } from "@mui/material";
+import FileUpload from "../Form/pieces_jointes";
 
-const InformationLivraison = ({ formData, handleChange, handleFileChange }) => {
+const InformationLivraison = ({ formData, handleChange, handleFileChange, selectedFiles }) => {
   return (
     <Box sx={{ marginTop: 3 }}>
       <Typography variant="h6" gutterBottom>
@@ -50,14 +51,15 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange }) => {
         </Grid>
 
         {/* Pièce jointe */}
-        <Grid item xs={12} md={3}>
+        {/* <Grid item xs={12} md={3}>
           <Typography variant="body1" gutterBottom>
             Pièce jointe
           </Typography>
           <input
             type="file"
-            name="pieceJointe"
+            name="pieceJointe[]"
             onChange={handleFileChange}
+            multiple
             style={{
               display: "block",
               padding: "10px 0",
@@ -71,7 +73,8 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange }) => {
               ? formData.pieceJointe.name
               : "Aucun fichier sélectionné."}
           </Typography>
-        </Grid>
+        </Grid> */}
+        <FileUpload handleFileChange={handleFileChange} selectedFiles={selectedFiles} />
       </Grid>
     </Box>
   );

@@ -16,7 +16,7 @@ const CheckboxSection = ({ formData, handleCheckboxChange }) => {
     control={
       <Checkbox
         checked={formData.copieDocument} // État spécifique
-        onChange={(e) => handleCheckboxChange(e, "copieDocument")} // Appelle handleCheckboxChange avec copieDocument
+        onChange={(e) => handleCheckboxChange(e)} // Appelle handleCheckboxChange avec copieDocument
         name="copieDocument" // Nom unique
       />
     }
@@ -32,7 +32,7 @@ const CheckboxSection = ({ formData, handleCheckboxChange }) => {
     control={
       <Checkbox
         checked={formData.lignesTransversales} // État spécifique
-        onChange={(e) => handleCheckboxChange(e, "lignesTransversales")} // Appelle handleCheckboxChange avec lignesTransversales
+        onChange={(e) => handleCheckboxChange(e)} // Appelle handleCheckboxChange avec lignesTransversales
         name="lignesTransversales" // Nom unique
       />
     }

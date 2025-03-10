@@ -9,21 +9,12 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
+import { newRow } from "../_config/config";
 
-const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudget, fetchBudgetInitial, budgetInitial, fetchBudgetRestant, budgetRestant, onRowsChange, initialRows = [], initialBudgetsInitial, updateBudgetInitial }) => {
-  const [rows, setRows] = useState([
-    { budgetAction: "", categorie: "", sousCategorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
-  ]);
-
+const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudgetInitial, fetchBudgetRestant, setLignesEngagement, lignesEngagements}) => {
   // const [budgets, setBudgets] = useState([]); // Liste des budgets
   const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
   const [categories, setCategories] = useState([]); // Liste des catégories
-  const [rowBudgetsInitial, setRowBudgetsInitial] = useState(initialBudgetsInitial || []); // ✅ Initialisation propre
-  const [rowBudgetsRestant, setRowBudgetsRestant] = useState([]); 
-  
-  useEffect(() => {
-    setRowBudgetsInitial(initialBudgetsInitial || []);
-  }, [initialBudgetsInitial]);
 
   useEffect(() => {
       const updateBudgetInitial = async () => {
@@ -77,6 +68,8 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
 
    // Charger les budgets filtrés en fonction du pôle sélectionné
    useEffect(() => {
+
+    console.log("lancement");
     const fetchFilteredBudgets = async () => {
       try {
         const response = await fetch("filtrage_budget_selon_pole.php");
@@ -84,6 +77,8 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
 
         // Filtrer les budgets pour le pôle sélectionné
         const budgetsForPole = data.filter((item) => item.code_pole === selectedPole);
+
+        console.log(budgetsForPole);
         setFilteredBudgets(budgetsForPole);
       } catch (error) {
         console.error("Erreur lors de la récupération des budgets filtrés :", error);
@@ -95,105 +90,38 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
     }
   }, [selectedPole]);
 
-  // Mettre à jour les lignes initiales lorsque `initialRows` change
-  useEffect(() => {
-    if (initialRows.length > 0) {
-      console.log("Chargement des lignes initiales :", initialRows);
-      setRows(initialRows);
-    }
-  }, [initialRows]);
-  
-
   const handleAddRow = () => {
-    const updatedRows = [
-      ...rows,
-      { budgetAction: "", categorie: "", quantite: 0, prixUnitaire: 0, total: 0 },
-    ];
-    const updatedBudgetsInitial = [...rowBudgetsInitial, "non connu"];
-    const updatedBudgetsRestant = [...rowBudgetsRestant, "non connu"];
-    setRows(updatedRows);
-    setRowBudgetsInitial(updatedBudgetsInitial); // Ajouter une nouvelle valeur par défaut
-    setRowBudgetsRestant(updatedBudgetsRestant); 
-    onRowsChange(updatedRows);
+    setLignesEngagement(prevRows => [...prevRows, { ...newRow }]);
   };
   
   const handleRemoveRow = (index) => {
-    const updatedRows = rows.filter((_, i) => i !== index);
-    const updatedBudgetsInitial = rowBudgetsInitial.filter((_, i) => i !== index);
-    const updatedBudgetsRestant= rowBudgetsRestant.filter((_, i) => i !== index);
-    setRows(updatedRows);
-    setRowBudgetsInitial(updatedBudgetsInitial); // Supprimer le montant correspondant
-    setRowBudgetsRestant(updatedBudgetsRestant); 
-    onRowsChange(updatedRows);
+    const updatedRows = lignesEngagements.filter((_, i) => i !== index);
+    setLignesEngagement(updatedRows);
   };
   
-  // const handleChange = async (index, field, value) => {
-  //   const updatedRows = [...rows];
-  //   updatedRows[index][field] = value;
+  const handleChangeLigne = async (index, e) => {
+    const { name: field, value } = e.target;
   
-  //   // Recalculer le total si la quantité ou le prix change
-  //   if (field === "quantite" || field === "prixUnitaire") {
-  //     updatedRows[index]["total"] =
-  //       parseFloat(updatedRows[index].quantite || 0) *
-  //       parseFloat(updatedRows[index].prixUnitaire || 0);
-  //   }
+    // Vérifier si l'index est valide
+    if (!lignesEngagements[index]) {
+      console.error("Index invalide :", index);
+      return;
+    }
   
-  //   setRows(updatedRows);
-  //   onRowsChange(updatedRows);
+    // Cloner l'objet pour éviter la mutation directe
+    const updatedRows = [...lignesEngagements];
+    const updatedRow = { ...updatedRows[index] };
   
-  //   // Si la catégorie change, récupérer le montant initial pour cette ligne
-  //   if (field === "categorie" && value) {
-  //     if (!formData || !selectedPole) {
-  //       console.error("Les valeurs de formData ou selectedPole sont manquantes");
-  //       return;
-  //     }
-  
-  //     const selectedBudget = updatedRows[index].budgetAction || formData.budgetsActions;
-  
-  //     try {
-  //       const montantInitial = await fetchBudgetInitial(
-  //         formData.exerciceBudgetaire,
-  //         selectedPole,
-  //         selectedBudget,
-  //         value
-  //       );
-  
-  //       const montantRestant = await fetchBudgetRestant(
-  //         formData.exerciceBudgetaire,
-  //         selectedPole,
-  //         selectedBudget,
-  //         value
-  //       );
-  
-  //       // Mettre à jour les montants pour cette ligne
-  //     const updatedBudgetsInitial = [...rowBudgetsInitial];
-  //     const updatedBudgetsRestant = [...rowBudgetsRestant];
-
-  //     updatedBudgetsInitial[index] = montantInitial;
-  //     updatedBudgetsRestant[index] = montantRestant;
-
-  //     setRowBudgetsInitial(updatedBudgetsInitial);
-  //     setRowBudgetsRestant(updatedBudgetsRestant);
-
-  //     } catch (error) {
-  //       console.error("Erreur lors de la récupération du budget initial :", error);
-  //     }
-  //   }
-  // };
-  
-  const handleChange = async (index, field, value) => {
-    const updatedRows = [...rows];
-    updatedRows[index][field] = value;
+    updatedRow[field] = value;
   
     // Recalculer le total si la quantité ou le prix change
     if (field === "quantite" || field === "prixUnitaire") {
-      updatedRows[index]["total"] =
-        parseFloat(updatedRows[index].quantite || 0) *
-        parseFloat(updatedRows[index].prixUnitaire || 0);
+      updatedRow["total"] =
+        parseFloat(updatedRow.quantite || 0) * parseFloat(updatedRow.prixUnitaire || 0);
     }
-  
-    setRows(updatedRows);
-    onRowsChange(updatedRows);
+    // Mettre à jour l'état
+    updatedRows[index] = updatedRow;
+    setLignesEngagement(updatedRows);
   
     // Si la catégorie change, récupérer le montant initial pour cette ligne
     if (field === "categorie" && value) {
@@ -202,60 +130,51 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
         return;
       }
   
-      const selectedBudget = updatedRows[index].budgetAction || formData.budgetsActions;
+      const selectedBudget = updatedRow.budgetAction || formData.budgetsActions;
   
       try {
-        const montantInitial = await fetchBudgetInitial(
+        updatedRow.budgetInitial = await fetchBudgetInitial(
+          formData.exerciceBudgetaire,
+          selectedPole,
+          selectedBudget,
+          value
+        );
+        updatedRow.budgetRestant = await fetchBudgetRestant(
           formData.exerciceBudgetaire,
           selectedPole,
           selectedBudget,
           value
         );
   
-        const montantRestant = await fetchBudgetRestant(
-          formData.exerciceBudgetaire,
-          selectedPole,
-          selectedBudget,
-          value
-        );
-
         // Vérification : Bloquer si le montant initial est "non connu"
-        if (montantInitial === "non connu") {
+        if (updatedRow.budgetInitial === "non connu") {
           alert("Le montant initial est 'non connu'. Veuillez sélectionner une autre catégorie.");
-          updatedRows[index]["categorie"] = ""; // Réinitialiser la catégorie
-          setRows(updatedRows);
-          onRowsChange(updatedRows);
-          return; // Stopper l'exécution ici
+          updatedRow["categorie"] = ""; // Réinitialiser la catégorie
         }
-
-        // Mettre à jour les montants pour cette ligne
-        const updatedBudgetsInitial = [...rowBudgetsInitial];
-        const updatedBudgetsRestant = [...rowBudgetsRestant];
-
-        updatedBudgetsInitial[index] = montantInitial;
-        updatedBudgetsRestant[index] = montantRestant;
-
-        setRowBudgetsInitial(updatedBudgetsInitial);
-        setRowBudgetsRestant(updatedBudgetsRestant);
-
+  
+        // Mettre à jour l'état après récupération des budgets
+        updatedRows[index] = updatedRow;
+        setLignesEngagement([...updatedRows]);
+  
       } catch (error) {
         console.error("Erreur lors de la récupération du budget initial :", error);
       }
     }
-};
+  };
+  
 
 
-  const totalGeneral = rows.reduce((acc, row) => acc + row.total, 0);
+  const totalGeneral = lignesEngagements?.reduce((acc, row) => acc + row.total, 0);
 
   return (
     <Box sx={{ marginTop: 3 }}>
       <Typography variant="h6" gutterBottom>
-        {isTransversal
+        {formData.lignesTransversales
           ? "Lignes d'engagements Transversaux"
           : "Lignes d'engagements"}
       </Typography>
 
-      {rows.map((row, index) => {
+      {lignesEngagements?.map((row, index) => {
         // Priorité au budget local (row.budgetAction), sinon selectedBudget global
         const activeBudget = row.budgetAction || selectedBudget;
 
@@ -267,13 +186,14 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
         return (
           <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
             {/* Budgets / Actions */}
-            {isTransversal && (
+            {formData.lignesTransversales && selectedPole.length > 0 &&  (
               <Grid item xs={10} md={2}>
                 <TextField
                   select
                   fullWidth
                   value={row.budgetAction}
-                  onChange={(e) => handleChange(index, "budgetAction", e.target.value)}
+                  onChange={(e) => handleChangeLigne(index, e)}
+                  name="budgetAction"
                   label="Budgets / Actions"
                 >
                   {filteredBudgets.map((budget, i) => (
@@ -292,8 +212,9 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
                 fullWidth
                 label="Catégorie"
                 value={row.categorie}
-                onChange={(e) => handleChange(index, "categorie", e.target.value)}
+                onChange={(e) => handleChangeLigne(index, e)}
                 disabled={!activeBudget}
+                name="categorie"
               >
                 <MenuItem value="">-- Sélectionner une catégorie --</MenuItem>
                 {filteredCategories.map((category, i) => (
@@ -310,8 +231,9 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
                 fullWidth
                 type="number"
                 value={row.quantite}
-                onChange={(e) => handleChange(index, "quantite", e.target.value)}
+                onChange={(e) => handleChangeLigne(index, e)}
                 label="Quantité"
+                name="quantite"
               />
             </Grid>
 
@@ -321,8 +243,9 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
                 fullWidth
                 type="number"
                 value={row.prixUnitaire}
-                onChange={(e) => handleChange(index, "prixUnitaire", e.target.value)}
+                onChange={(e) => handleChangeLigne(index, e)}
                 label="Prix Unitaire"
+                name="prixUnitaire"
               />
             </Grid>
 
@@ -341,11 +264,11 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
               <IconButton
                 color="error"
                 onClick={() => handleRemoveRow(index)}
-                disabled={rows.length === 1}
+                disabled={lignesEngagements.length === 1}
               >
                 <RemoveCircleOutlineIcon />
               </IconButton>
-              {index === rows.length - 1 && (
+              {index === lignesEngagements.length - 1 && (
                 <IconButton color="primary" onClick={handleAddRow}>
                   <AddCircleOutlineIcon />
                 </IconButton>
@@ -367,14 +290,14 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography variant="body1">Budget initial</Typography>
                     <Typography variant="body1" color="textSecondary">
-                      {rowBudgetsInitial[index] || "non connu"} {/* Affiche le montant de la ligne */}
+                      {lignesEngagements[index].budgetInitial || "non connu"} {/* Affiche le montant de la ligne */}
                     </Typography>
                   </Box>
 
                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography variant="body1">Budget restant</Typography>
                     <Typography variant="body1" color="textSecondary">
-                    {rowBudgetsRestant[index] || "non connu"}
+                    {lignesEngagements[index].budgetRestant || "non connu"}
                     </Typography>
                   </Box>
                 </Box>
@@ -394,7 +317,7 @@ const LignesEngagements = ({ formData, isTransversal, selectedPole, selectedBudg
         }}
       >
         <Typography variant="h6">
-          Total Général : {totalGeneral.toFixed(2)} €
+          Total Général : {totalGeneral?.toFixed(2)} €
         </Typography>
       </Box>
     </Box>
