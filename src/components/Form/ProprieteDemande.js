@@ -274,6 +274,11 @@
 // export default ProprieteDemande;
 
 
+
+
+
+
+
 import React, { useState, useEffect, useMemo } from "react";
 import { Box, Grid, Typography, TextField, MenuItem } from "@mui/material";
 
@@ -286,6 +291,7 @@ const ProprieteDemande = ({
 }) => {
   const [budgets, setBudgets] = useState([]);
   const [poles, setPoles] = useState([]);
+  const [filteredBudgets, setFilteredBudgets] = useState([]);
 
   // Détermination du mode à partir des paramètres URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -358,15 +364,46 @@ const ProprieteDemande = ({
   }, []);
 
   // --- Calcul des budgets filtrés en fonction du pôle sélectionné ---
-  const filteredBudgets = useMemo(() => {
-    if (!budgets.length || !formData.services) return [];
-    const poleCode = (polesMap[formData.services] || formData.services).toString();
-    const filtered = budgets.filter(
-      (item) => item.code_pole && item.code_pole.toString() === poleCode
-    );
-    console.log("Budgets filtrés pour poleCode", poleCode, ":", filtered);
-    return filtered;
-  }, [budgets, formData.services]);
+  // const filteredBudgets = useMemo(() => {
+  //   if (!budgets.length || !formData.services) return [];
+  //   const poleCode = (polesMap[formData.services] || formData.services).toString();
+  //   console.log("poleCode =======================================>", poleCode);
+  //   const filtered = budgets.filter(
+  //     (item) => item.code_pole && item.code_pole.toString() === poleCode
+  //   );
+  //   console.log("Budgets filtrés pour poleCode", poleCode, ":", filtered);
+  //   return filtered;
+  // }, [budgets, formData.services]);
+
+  useEffect(() => {
+    const fetchFilteredBudgets = async () => {
+      if (!formData.services) return; // Vérifie si un pôle est sélectionné
+  
+      try {
+        const response = await fetch("filtrage_budget_selon_pole2.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selectedPole: formData.services }) // Envoie le pôle sélectionné
+        });
+  
+        const data = await response.json();
+  
+        if (data.status === "error") {
+          console.error("Erreur :", data.message);
+          setFilteredBudgets([]);
+          return;
+        }
+  
+        console.log("Budgets filtrés reçus :", data);
+        setFilteredBudgets(data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des budgets filtrés :", error);
+        setFilteredBudgets([]);
+      }
+    };
+  
+    fetchFilteredBudgets();
+  }, [formData.services]);
 
   // --- Mise à jour automatique du champ budgetsActions (seulement en mode création) ---
   useEffect(() => {
