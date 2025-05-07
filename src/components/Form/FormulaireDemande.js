@@ -72,6 +72,8 @@ const FormulaireDemande = () => {
     const [budgetInitial, setBudgetInitial] = useState("non connu");
     const [budgetRestant, setBudgetRestant] = useState("non connu");
     const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
+    const [filteredBudgetss, setFilteredBudgets] = useState([]); // Budgets filtrés
+    
     const [nom, setNom] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
 
@@ -79,23 +81,32 @@ const FormulaireDemande = () => {
         fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php")
           .then((response) => response.json())
           .then((data) => {
-            console.log("Catégories reçues :", data);
+            
             setNom(data);
           })
           .catch((error) => console.error("Erreur lors de la récupération de l'utilisateur connecté:", error));
       }, []);
-
+  useEffect(() => {
+    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
+      .then((response) => response.json())
+      .then((data) => {
+        
+        setFilteredBudgets(data);
+      })
+      .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+  }, []);
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const jsonData = urlParams.get("json");
       const action = urlParams.get("action");
+      console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData avant action',formData)
     
       if (jsonData) {
-        console.log("JSON brut reçu :", jsonData);
+        
         try {
           const parsedData = JSON.parse(jsonData);
     
-          console.log("Données analysées :", parsedData);
+          
     
           // Incrémenter le numéro de pièce uniquement si l'action est "duplicate"
           if (action === "duplicate" && parsedData.numeroPiece) {
@@ -104,7 +115,10 @@ const FormulaireDemande = () => {
             const sequence = parseInt(currentNumeroPiece.slice(-6)) + 1; // Incrémente la séquence
             const newNumeroPiece = `${prefix}${sequence.toString().padStart(6, "0")}`; // Reformate avec les zéros
 
-            parsedData.numeroPiece = newNumeroPiece; // Met à jour le numéro de pièce
+            parsedData.numeroPiece = newNumeroPiece;
+             // Met à jour le numéro de pièce
+      console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData dans action',formData)
+
           }
     
           // Mettre à jour les données du formulaire
@@ -112,10 +126,11 @@ const FormulaireDemande = () => {
             ...prev,
             ...parsedData,
           }));
+          console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData avant action',formData)
     
           // Mettre à jour les lignes d'engagement
           if (parsedData.lignesEngagement) {
-            console.log("Lignes d'engagement analysées :", parsedData.lignesEngagement);
+            
             setLignesEngagement([...parsedData.lignesEngagement]);
           }
         } catch (error) {
@@ -173,7 +188,7 @@ const FormulaireDemande = () => {
       // Mise à jour de selectedFiles pour l'affichage
       setSelectedFiles(files);
     
-      console.log("Fichiers sélectionnés :", files);
+      
     };
     
 
@@ -199,7 +214,10 @@ const FormulaireDemande = () => {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
-  
+
+      const adresseParDefaut = `VAINCRE LA MUCOVISCIDOSE\n181 RUE DE TOLBIAC\n75013 Paris\nfactures@vaincrelamuco.org`;
+
+
       // Vérifier si toutes les lignes ont une catégorie sélectionnée
       const categorieManquante = lignesEngagement.some((row) => !row.categorie);
       if (categorieManquante) {
@@ -250,7 +268,7 @@ const FormulaireDemande = () => {
           if (resIdData.status !== "success") {
             console.error("Erreur lors du traitement du Res_Id :", resIdData.message);
           } else {
-            console.log("Traitement Res_Id réussi :", resIdData.message);
+            
           }
         } catch (error) {
           console.error("Erreur lors de l'envoi du Res_Id :", error);
@@ -275,14 +293,30 @@ const FormulaireDemande = () => {
   
         // Construction du numéro de pièce avec la séquence générée
         const generatedNumeroPiece = `${polesMap[formData.services]}${getCurrentDate()}${sequenceData.sequence}`;
+
+        // Ajout du budget initial et restant dans chaque ligne d'engagement
+        const lignesEngagementAvecBudget = lignesEngagement.map((ligne) => ({
+          ...ligne,
+          budgetInitial: ligne.budgetInitial || "non connu",
+          budgetRestant: ligne.budgetRestant || "non connu",
+      }));
+
+        // Mettre à jour formData avec l'adresse par défaut si elles ne sont pas remplies
+        const formDataUpdated = {
+          ...formData,
+          adresseLivraison: adresseParDefaut,
+          adresseFacturation: adresseParDefaut,
+        };
   
         // Préparer les données à soumettre avec le numéro de pièce mis à jour
         const dataSoumise = {
-          ...formData,
-          lignesEngagement,
+          ...formDataUpdated,
+          lignesEngagement: lignesEngagementAvecBudget,
           numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
           demandeur,
         };
+
+        console.log("📌 Données soumises :", dataSoumise);
   
         // Soumission des données
         const response = await fetch("process_form.php", {
@@ -291,45 +325,18 @@ const FormulaireDemande = () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(dataSoumise),
+          
         });
+
+        
   
         const data = await response.json();
   
         if (data.status === "success") {
-          console.log("Formulaire soumis avec succès !");
+          
+          
           setOpen(true); // Ouvre la popup de confirmation
   
-          // 👉 **ENVOI DE LA PIÈCE JOINTE APRÈS LA VALIDATION**
-          // if (formData.pieceJointe  && formData.pieceJointe.length > 0) {
-          //   // const formDataFile = new FormData();
-          //   // formDataFile.append("pieceJointe", formData.pieceJointe);
-          //   // formDataFile.append("numeroPiece", generatedNumeroPiece); // Associe la pièce jointe à la demande
-
-          //   const formDataFile = new FormData();
-          //   for (let i = 0; i < formData.pieceJointe.length; i++) {
-          //     formDataFile.append("pieceJointe[]", formData.pieceJointe[i]); // Ajouter chaque fichier
-          //   }
-          //   formDataFile.append("numeroPiece", generatedNumeroPiece); // Ajouter le numéro de pièce
-          
-  
-          //   try {
-          //     const fileResponse = await fetch("upload_file.php", {
-          //       method: "POST",
-          //       body: formDataFile, // Envoi du fichier séparément
-          //     });
-  
-          //     const fileData = await fileResponse.json();
-  
-          //     if (fileData.status === "success") {
-          //       console.log("📂 Pièce jointe envoyée avec succès !");
-          //     } else {
-          //       console.error("⚠️ Erreur lors de l'envoi de la pièce jointe :", fileData.message);
-          //     }
-          //   } catch (error) {
-          //     console.error("⚠️ Erreur lors de l'upload de la pièce jointe :", error);
-          //   }
-          // }
-
           if (formData.pieceJointe && formData.pieceJointe.length > 0) {
             const formDataFile = new FormData();
           
@@ -359,7 +366,7 @@ const FormulaireDemande = () => {
               const fileData = await fileResponse.json();
           
               if (fileData.status === "success") {
-                console.log("📂 Pièces jointes envoyées avec succès !");
+                
               } else {
                 console.error("⚠️ Erreur lors de l'envoi des pièces jointes :", fileData.message);
               }
@@ -390,6 +397,7 @@ const FormulaireDemande = () => {
     };
 
   const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
+    console.log("🔍 Fetching Budget Initial avec :", { annee, codePole, budget, categorie });
     try {
       const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_sur_da.php", {
         method: "POST",
@@ -398,14 +406,18 @@ const FormulaireDemande = () => {
       });
   
       const data = await response.json();
+      console.log("📌 Réponse Budget Initial :", data);
+
       return data.montant_initial || "non connu";
     } catch (error) {
-      console.error("Erreur lors de la récupération du budget initial :", error);
+      console.error("❌ Erreur lors de la récupération du budget initial :", error);
+
       return "non connu";
     }
   };
 
   const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
+    console.log("🔍 Fetching Budget Restant avec :", { annee, codePole, budget, categorie });
     try {
       const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
         method: "POST",
@@ -485,6 +497,7 @@ const FormulaireDemande = () => {
 
           {/* Section Propriété de la demande */}
           <LignesEngagements 
+            filteredBudgetss={filteredBudgetss}
             formData={formData} 
             handleChange={handleChange} 
             selectedBudgetAction={formData.budgetsActions}

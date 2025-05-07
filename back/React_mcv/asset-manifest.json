@@ -1,13 +1,13 @@
 {
   "files": {
     "main.css": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/css/main.ec580827.css",
-    "main.js": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/js/main.6b1a8bbf.js",
+    "main.js": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/js/main.9371896f.js",
     "index.html": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/index.html",
     "main.ec580827.css.map": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/css/main.ec580827.css.map",
-    "main.6b1a8bbf.js.map": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/js/main.6b1a8bbf.js.map"
+    "main.9371896f.js.map": "/vaincre_la_mucoviscidose/_ClientSpecific/66579/React_mcv/static/js/main.9371896f.js.map"
   },
   "entrypoints": [
     "static/css/main.ec580827.css",
-    "static/js/main.6b1a8bbf.js"
+    "static/js/main.9371896f.js"
   ]
 }

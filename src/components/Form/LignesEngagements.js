@@ -11,11 +11,26 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
 import { newRow } from "../_config/config";
 
-const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudgetInitial, fetchBudgetRestant, setLignesEngagement, lignesEngagements}) => {
+const LignesEngagements = ({
+  filteredBudgetss, 
+  formData, 
+  selectedPole, 
+  selectedBudget, 
+  setFormData,
+  fetchBudgetInitial, 
+  fetchBudgetRestant, 
+  setLignesEngagement, 
+  lignesEngagements
+}) => {
   // const [budgets, setBudgets] = useState([]); // Liste des budgets
-  const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
+  const [filteredBudgets, setFilteredBudgets] = useState(filteredBudgetss); // Budgets filtrés
   const [categories, setCategories] = useState([]); // Liste des catégories
 
+   // Détermination du mode à partir des paramètres URL
+   const urlParams = new URLSearchParams(window.location.search);
+   const actionParam = urlParams.get("action");
+   const isEditOrDuplicate = actionParam === "edit" || actionParam === "duplicate";
+ 
   useEffect(() => {
       const updateBudgetInitial = async () => {
         if (formData.exerciceBudgetaire && formData.services && formData.budgetsActions) {
@@ -41,54 +56,190 @@ const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudget
         );
       }
     };
-    updateBudgetRestant ();
+    updateBudgetRestant();
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   // Charger les budgets
-  useEffect(() => {
-    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Budgets reçus :", data);
-        setFilteredBudgets(data);
-      })
-      .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
-  }, []);
+  // useEffect(() => {
+  //   fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
+  //     .then((response) => response.json())
+  //     .then((data) => {
+        
+  //       setFilteredBudgets(data);
+  //     })
+  //     .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+  // }, []);
 
   // Charger les catégories
   useEffect(() => {
     fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/categories.php")
       .then((response) => response.json())
       .then((data) => {
-        console.log("Catégories reçues :", data);
+        
         setCategories(data);
       })
       .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
   }, []);
 
    // Charger les budgets filtrés en fonction du pôle sélectionné
-   useEffect(() => {
+  //  useEffect(() => {
 
-    console.log("lancement");
+  //   
+  //   const fetchFilteredBudgets = async () => {
+  //     try {
+  //       const response = await fetch("filtrage_budget_selon_pole.php");
+  //       const data = await response.json();
+
+  //       // Filtrer les budgets pour le pôle sélectionné
+  //       const budgetsForPole = data.filter((item) => item.code_pole === selectedPole);
+
+  //       
+  //       setFilteredBudgets(budgetsForPole);
+  //     } catch (error) {
+  //       console.error("Erreur lors de la récupération des budgets filtrés :", error);
+  //     }
+  //   };
+
+  //   if (selectedPole) {
+  //     fetchFilteredBudgets();
+  //   }
+  // }, [selectedPole]);
+
+  useEffect(() => {
     const fetchFilteredBudgets = async () => {
+      if (!formData.services) return;
+  
       try {
-        const response = await fetch("filtrage_budget_selon_pole.php");
-        const data = await response.json();
+        const response = await fetch("filtrage_budget_selon_pole2.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ selectedPole: formData.services }),
+        });
+  
+        const data =  await response.json();
+        // const data = await response.json();
+  
+        if (data.status === "error") {
+          console.error("Erreur :", data.message);
+          return;
+        }
+  
+        
+        setFilteredBudgets(data ? data : "");
+        // setFilteredBudgets((prev) => {
 
-        // Filtrer les budgets pour le pôle sélectionné
-        const budgetsForPole = data.filter((item) => item.code_pole === selectedPole);
-
-        console.log(budgetsForPole);
-        setFilteredBudgets(budgetsForPole);
+        //   if (data.length > 0) {
+        //     return data;
+        //   }
+        //   return prev; // Ne pas vider la liste si aucun budget trouvé
+        // });
+  
       } catch (error) {
         console.error("Erreur lors de la récupération des budgets filtrés :", error);
       }
     };
+  
+    fetchFilteredBudgets();
+  }, [formData.services]);
 
-    if (selectedPole) {
-      fetchFilteredBudgets();
-    }
-  }, [selectedPole]);
+
+  // --- Pré-remplissage du formulaire via le paramètre "json" dans l'URL ---
+    useEffect(() => {
+      const json = urlParams.get("json");
+      if (json) {
+        try {
+          const parsed = JSON.parse(decodeURIComponent(json));
+          
+  
+          setFormData((prev) => {
+            // Vérifier si les données sont identiques pour éviter une mise à jour inutile
+            if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
+        
+            }
+     
+
+            return { ...prev, ...parsed };
+          });
+        } catch (error) {
+          console.error("Erreur lors du parsing du JSON dans l'URL :", error);
+        }
+      }
+    }, [urlParams]);
+  
+  
+
+    const [isInitialized, setIsInitialized] = useState(false);
+
+    useEffect(() => {
+      if (isEditOrDuplicate && formData.services) {
+        
+        // setFilteredBudgets([]); // Réinitialisation temporaire pour forcer le re-render TODO COUCOU
+    
+        const fetchFilteredBudgets = async () => {
+          try {
+            const response = await fetch("filtrage_budget_selon_pole2.php", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ selectedPole: formData.services }) // Envoie le pôle sélectionné
+            });
+    
+            const data = await response.json();
+    
+            if (data.status === "error") {
+              console.error("Erreur :", data.message);
+              return;
+            }
+    
+            
+            setFilteredBudgets(data);
+          } catch (error) {
+            console.error("⚠️ Erreur lors de la récupération des budgets filtrés :", error);
+          }
+        };
+    
+        fetchFilteredBudgets();
+      }
+    }, [formData.services, isEditOrDuplicate]); 
+    
+    
+      useEffect(() => {
+        // En mode création (pas edit/duplicate) et si aucune valeur n'est renseignée, on prend la première option filtrée
+        if (!isEditOrDuplicate && filteredBudgets.length > 0 && (!formData.budgetsActions || formData.budgetsActions.trim() === "")) {
+          
+          setFormData((prev) => ({
+            ...prev,
+            budgetsActions: filteredBudgets[0].budget,
+          }));
+        }
+      }, [filteredBudgets, formData.budgetsActions, setFormData, isEditOrDuplicate]);
+    
+      // --- Initialisation du type de demande à "achat" par défaut ---
+      useEffect(() => {
+        if (!formData.typeDemande) {
+          setFormData((prev) => ({
+            ...prev,
+            typeDemande: "achat",
+          }));
+        }
+      }, [formData.typeDemande, setFormData]);
+    
+    
+
+    
+    
+    // 🔹 Vérifie si les budgets disparaissent après une mise à jour de l'état
+    useEffect(() => {
+      
+    }, [formData]);
+    
+    useEffect(() => {
+      
+    }, [formData.lignesEngagement]);
+    
+    
+  
+
+    
 
   const handleAddRow = () => {
     setLignesEngagement(prevRows => [...prevRows, { ...newRow }]);
@@ -100,6 +251,7 @@ const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudget
   };
   
   const handleChangeLigne = async (index, e) => {
+    
     const { name: field, value } = e.target;
   
     // Vérifier si l'index est valide
@@ -182,11 +334,13 @@ const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudget
         const filteredCategories = categories.filter(
           (cat) => cat.parent === activeBudget
         );
-
+          
+        
+          
         return (
           <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
             {/* Budgets / Actions */}
-            {formData.lignesTransversales && selectedPole.length > 0 &&  (
+            {formData.lignesTransversales && (
               <Grid item xs={10} md={2}>
                 <TextField
                   select
@@ -196,7 +350,8 @@ const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudget
                   name="budgetAction"
                   label="Budgets / Actions"
                 >
-                  {filteredBudgets.map((budget, i) => (
+                  <MenuItem value="">-- Sélectionner un budget--</MenuItem>
+                  {filteredBudgets.map((budget, i) => ( 
                     <MenuItem key={i} value={budget.budget}>
                       {budget.budget}
                     </MenuItem>
@@ -275,8 +430,8 @@ const LignesEngagements = ({ formData, selectedPole, selectedBudget, fetchBudget
               )}
             </Grid>
             {/* Gestion des budgets */}
+            
               <Grid item xs={12} md={3}>
-                
                 <Box
                   sx={{
                     display: "flex",

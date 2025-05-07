@@ -48,7 +48,7 @@ const FormulaireDemande = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Formulaire soumis :", formData);
+    
   };
 
   // const handleSubmit = async (e) => {
@@ -66,7 +66,7 @@ const FormulaireDemande = () => {
   //     const data = await response.json();
 
   //     if (data.status === "success") {
-  //       console.log("Soumission réussie, affichage de la popup");
+  //       
   //       setOpen(true); // Ouvre la popup
   //     } else {
   //       alert("Une erreur est survenue lors de la soumission.");

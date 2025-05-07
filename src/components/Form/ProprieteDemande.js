@@ -37,7 +37,7 @@
 //           throw new Error(`Erreur HTTP: ${response.status}`);
 //         }
 //         const data = await response.json();
-//         console.log("Budgets reçus :", data);
+//         
 //         setBudgets(data);
 //       } catch (error) {
 //         console.error("Erreur lors de la récupération des budgets :", error);
@@ -58,7 +58,7 @@
 //           throw new Error(`Erreur HTTP: ${response.status}`);
 //         }
 //         const data = await response.json();
-//         console.log("Pôles reçus :", data);
+//         
 //         setPoles(data);
 //       } catch (error) {
 //         console.error("Erreur lors de la récupération des pôles :", error);
@@ -316,16 +316,21 @@ const ProprieteDemande = ({
     if (json) {
       try {
         const parsed = JSON.parse(decodeURIComponent(json));
-        console.log("Données pré-remplies depuis l'URL :", parsed);
-        setFormData((prev) => ({
-          ...prev,
-          ...parsed,
-        }));
+        
+
+        setFormData((prev) => {
+          // Vérifier si les données sont identiques pour éviter une mise à jour inutile
+          if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
+            return prev; // Pas de changement, éviter un re-render
+          }
+          return { ...prev, ...parsed };
+        });
       } catch (error) {
         console.error("Erreur lors du parsing du JSON dans l'URL :", error);
       }
     }
-  }, [setFormData, urlParams]);
+  }, [urlParams]);
+
 
   // --- Récupération des budgets depuis data.php ---
   useEffect(() => {
@@ -336,7 +341,7 @@ const ProprieteDemande = ({
         );
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const data = await response.json();
-        console.log("Budgets reçus :", data);
+        
         setBudgets(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des budgets :", error);
@@ -354,7 +359,7 @@ const ProprieteDemande = ({
         );
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const data = await response.json();
-        console.log("Pôles reçus :", data);
+        
         setPoles(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des pôles :", error);
@@ -367,11 +372,11 @@ const ProprieteDemande = ({
   // const filteredBudgets = useMemo(() => {
   //   if (!budgets.length || !formData.services) return [];
   //   const poleCode = (polesMap[formData.services] || formData.services).toString();
-  //   console.log("poleCode =======================================>", poleCode);
+  //   
   //   const filtered = budgets.filter(
   //     (item) => item.code_pole && item.code_pole.toString() === poleCode
   //   );
-  //   console.log("Budgets filtrés pour poleCode", poleCode, ":", filtered);
+  //   
   //   return filtered;
   // }, [budgets, formData.services]);
 
@@ -394,7 +399,7 @@ const ProprieteDemande = ({
           return;
         }
   
-        console.log("Budgets filtrés reçus :", data);
+        
         setFilteredBudgets(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des budgets filtrés :", error);
@@ -409,7 +414,7 @@ const ProprieteDemande = ({
   useEffect(() => {
     // En mode création (pas edit/duplicate) et si aucune valeur n'est renseignée, on prend la première option filtrée
     if (!isEditOrDuplicate && filteredBudgets.length > 0 && (!formData.budgetsActions || formData.budgetsActions.trim() === "")) {
-      console.log("Mise à jour automatique de budgetsActions avec :", filteredBudgets[0].budget);
+      
       setFormData((prev) => ({
         ...prev,
         budgetsActions: filteredBudgets[0].budget,
