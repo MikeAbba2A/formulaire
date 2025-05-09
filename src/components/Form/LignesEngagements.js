@@ -340,7 +340,7 @@ const LignesEngagements = ({
         return (
           <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
             {/* Budgets / Actions */}
-            {formData.lignesTransversales && (
+            {/* {formData.lignesTransversales && (
               <Grid item xs={10} md={2}>
                 <TextField
                   select
@@ -358,7 +358,7 @@ const LignesEngagements = ({
                   ))}
                 </TextField>
               </Grid>
-            )}
+            )} */}
 
             {/* Catégories */}
             <Grid item xs={12} md={2}>
