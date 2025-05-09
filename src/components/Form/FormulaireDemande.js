@@ -23,27 +23,6 @@ import LignesEngagements from "./LignesEngagements";
 import InformationLivraison from "./InformationLivraison";
 import { newRow } from "../_config/config";
 
-
-const initialState = {
-  adresseLivraison: "",
-  adresseFacturation: "",
-  fournisseur: "",
-  numeroPiece: "",
-  copieDocument: false,
-  typeDemande: "",
-  exerciceBudgetaire: "",
-  services: "",
-  budgetsActions: "",
-  budgetInitial: "non connu",
-  budgetRestant: "non connu",
-  dateReception: "",
-  descriptionDemande: "",
-  justification: "",
-  pieceJointe: [],
-  copieDocument: false, // Première checkbox
-  lignesTransversales: false, // Deuxième checkbox
-};
-
 const FormulaireDemande = () => {
     const [formData, setFormData] = useState({
       adresseLivraison: "",
@@ -77,6 +56,11 @@ const FormulaireDemande = () => {
     const [nom, setNom] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
 
+    const [montantsBudget, setMontantsBudget] = useState({
+      montant_initial: "non connu",
+      montant_restant: "non connu"
+    });
+
     useEffect(() => {
         fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php")
           .then((response) => response.json())
@@ -86,27 +70,24 @@ const FormulaireDemande = () => {
           })
           .catch((error) => console.error("Erreur lors de la récupération de l'utilisateur connecté:", error));
       }, []);
-  useEffect(() => {
-    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
-      .then((response) => response.json())
-      .then((data) => {
-        
-        setFilteredBudgets(data);
-      })
-      .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
-  }, []);
+    useEffect(() => {
+      fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
+        .then((response) => response.json())
+        .then((data) => {
+          
+          setFilteredBudgets(data);
+        })
+        .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+    }, []);
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const jsonData = urlParams.get("json");
       const action = urlParams.get("action");
-      console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData avant action',formData)
     
       if (jsonData) {
         
         try {
           const parsedData = JSON.parse(jsonData);
-    
-          
     
           // Incrémenter le numéro de pièce uniquement si l'action est "duplicate"
           if (action === "duplicate" && parsedData.numeroPiece) {
@@ -117,7 +98,6 @@ const FormulaireDemande = () => {
 
             parsedData.numeroPiece = newNumeroPiece;
              // Met à jour le numéro de pièce
-      console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData dans action',formData)
 
           }
     
@@ -126,7 +106,6 @@ const FormulaireDemande = () => {
             ...prev,
             ...parsedData,
           }));
-          console.log('👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌👌formData avant action',formData)
     
           // Mettre à jour les lignes d'engagement
           if (parsedData.lignesEngagement) {
@@ -153,7 +132,6 @@ const FormulaireDemande = () => {
       }));
     };
 
-    
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData({ ...formData, [name]: value });
@@ -233,14 +211,12 @@ const FormulaireDemande = () => {
         return; // Bloque la validation du formulaire
       }
 
-      
+      const montantRestantNum = parseFloat(montantsBudget.montant_restant);
+      if (!isNaN(montantRestantNum) && totalGeneral > montantRestantNum) {
+        alert("Le montant total de cette demande d'achat dépasse le montant restant disponible pour ce budget.");
+        return;
+      }
 
-      // // Comparaison
-      // if (!isNaN(montantRestantTotal) && totalGeneral > montantRestantTotal) {
-      //   alert("Le montant total dépasse le budget restant disponible.");
-      //   return; // ❌ bloque la soumission
-      // }
-  
       // Récupérer le demandeur depuis l'élément #demandeur
       const demandeurElement = document.getElementById("demandeur");
       const demandeur = demandeurElement
@@ -383,10 +359,8 @@ const FormulaireDemande = () => {
         console.error("❌ Erreur lors de la soumission :", error);
         alert("Une erreur est survenue.");
       }
-  };
+    };
   
-
-
     const handleClose = () => {
       setOpen(false); // Ferme la popup
       if (window.opener) {
@@ -396,46 +370,41 @@ const FormulaireDemande = () => {
       }
     };
 
-  const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
-    console.log("🔍 Fetching Budget Initial avec :", { annee, codePole, budget, categorie });
-    try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_sur_da.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
-      });
-  
-      const data = await response.json();
-      console.log("📌 Réponse Budget Initial :", data);
+    const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
+      console.log("🔍 Fetching Budget Initial avec :", { annee, codePole, budget, categorie });
+      try {
+        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_sur_da.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
+        });
+    
+        const data = await response.json();
 
-      return data.montant_initial || "non connu";
-    } catch (error) {
-      console.error("❌ Erreur lors de la récupération du budget initial :", error);
+        return data.montant_initial || "non connu";
+      } catch (error) {
+        console.error("❌ Erreur lors de la récupération du budget initial :", error);
 
-      return "non connu";
-    }
-  };
+        return "non connu";
+      }
+    };
 
-  const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
-    console.log("🔍 Fetching Budget Restant avec :", { annee, codePole, budget, categorie });
-    try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
-      });
-  
-      const data2 = await response.json();
-      return data2.montant_restant || "non connu";
-    } catch (error) {
-      console.error("Erreur lors de la récupération du budget initial :", error);
-      return "non connu";
-    }
-  };
+    const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
+      console.log("🔍 Fetching Budget Restant avec :", { annee, codePole, budget, categorie });
+      try {
+        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
+        });
+    
+        const data2 = await response.json();
+        return data2.montant_restant || "non connu";
+      } catch (error) {
 
-//   console.log("Total général :", totalGeneral);
-// console.log("Budget restant global :", formData.budgetRestant);
-
+        return "non connu";
+      }
+    };
 
   return (
     <>
@@ -497,6 +466,8 @@ const FormulaireDemande = () => {
             budgetInitial={budgetInitial}
             fetchBudgetRestant={fetchBudgetRestant}
             budgetRestant={budgetRestant}
+            setMontantsBudget={setMontantsBudget} 
+            montantsBudget={montantsBudget}
           />
 
           {/* Section Propriété de la demande */}
