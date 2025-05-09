@@ -168,14 +168,6 @@ const FormulaireDemande = () => {
         }));
     };
 
-    // const handleFileChange = (e) => {
-    //   const files = e.target.files;
-    //   setFormData((prevData) => ({
-    //     ...prevData,
-    //     pieceJointe: files,
-    //   }));
-    // };
-
     const handleFileChange = (event) => {
       const files = Array.from(event.target.files);
       
@@ -240,6 +232,14 @@ const FormulaireDemande = () => {
         alert("Le montant de la demande d'achat est de 0.00€, validation non permise.");
         return; // Bloque la validation du formulaire
       }
+
+      
+
+      // // Comparaison
+      // if (!isNaN(montantRestantTotal) && totalGeneral > montantRestantTotal) {
+      //   alert("Le montant total dépasse le budget restant disponible.");
+      //   return; // ❌ bloque la soumission
+      // }
   
       // Récupérer le demandeur depuis l'élément #demandeur
       const demandeurElement = document.getElementById("demandeur");
@@ -432,6 +432,10 @@ const FormulaireDemande = () => {
       return "non connu";
     }
   };
+
+//   console.log("Total général :", totalGeneral);
+// console.log("Budget restant global :", formData.budgetRestant);
+
 
   return (
     <>

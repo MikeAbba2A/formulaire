@@ -11,6 +11,7 @@ const ProprieteDemande = ({
   const [budgets, setBudgets] = useState([]);
   const [poles, setPoles] = useState([]);
   const [filteredBudgets, setFilteredBudgets] = useState([]);
+  const [montantsBudget, setMontantsBudget] = useState({ montant_initial: "non connu", montant_restant: "non connu" });
 
   // Détermination du mode à partir des paramètres URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -228,22 +229,174 @@ const ProprieteDemande = ({
     updateBudgetRestant();
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions, fetchBudgetRestant]);
 
+  const fetchMontantsBudget = async () => {
+    try {
+      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/total_budget.php");
+      const data = await response.json();
+  
+      const budget = data.find(item => item.actions === formData.budgetsActions);
+      if (budget) {
+        setMontantsBudget({
+          montant_initial: budget.montant_initial,
+          montant_restant: budget.montant_restant,
+        });
+      } else {
+        setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération des montants du budget :", error);
+    }
+  };
+
+  useEffect(() => {
+    if (formData.budgetsActions) {
+      fetchMontantsBudget();
+    }
+  }, [formData.budgetsActions]);
+
   // --- Rendu du composant ---
+  // return (
+  //   <Box
+  //     sx={{
+  //       marginTop: 3,
+  //       padding: 2,
+  //       display: "flex",
+  //       justifyContent: "center",
+  //     }}
+  //   >
+  //     <Grid container spacing={4} justifyContent="center">
+  //       <Grid item xs={12} md={6}>
+  //         <Typography variant="h6" gutterBottom>
+  //           Propriété de la demande
+  //         </Typography>
+  //         <Box>
+  //           {/* Type de demande */}
+  //           <TextField
+  //             select
+  //             fullWidth
+  //             label="Type de la demande"
+  //             name="typeDemande"
+  //             value={formData.typeDemande || ""}
+  //             onChange={handleChange}
+  //             required
+  //             sx={{ marginBottom: 2 }}
+  //           >
+  //             <MenuItem value="achat">Demande d'achat</MenuItem>
+  //           </TextField>
+
+  //           {/* Exercice budgétaire */}
+  //           <TextField
+  //             select
+  //             fullWidth
+  //             label="Exercice budgétaire"
+  //             name="exerciceBudgetaire"
+  //             value={formData.exerciceBudgetaire || ""}
+  //             onChange={handleChange}
+  //             required
+  //             sx={{ marginBottom: 2 }}
+  //           >
+  //             {[-1, 0, 1].map((offset) => {
+  //               const year = new Date().getFullYear() + offset;
+  //               return (
+  //                 <MenuItem key={year} value={year}>
+  //                   {year}
+  //                 </MenuItem>
+  //               );
+  //             })}
+  //           </TextField>
+
+  //           {/* Pôle */}
+  //           <TextField
+  //             select
+  //             fullWidth
+  //             label="Pôle"
+  //             name="services"
+  //             value={formData.services || ""}
+  //             onChange={handlePoleChange}
+  //             required
+  //             sx={{ marginBottom: 2 }}
+  //           >
+  //             {poles.map((pole, index) => (
+  //               <MenuItem key={index} value={pole}>
+  //                 {pole}
+  //               </MenuItem>
+  //             ))}
+  //           </TextField>
+
+  //           {/* Budgets / Actions */}
+  //           {/* {!formData.lignesTransversales && ( */}
+  //             <TextField
+  //               select
+  //               fullWidth
+  //               label="Budgets / Actions"
+  //               name="budgetsActions"
+  //               value={formData.budgetsActions || ""}
+  //               onChange={handleChange}
+  //               required
+  //               sx={{ marginBottom: 2 }}
+  //             >
+  //               {filteredBudgets.map((budget, index) => (
+  //                 // <MenuItem key={index} value={budget.budget}>
+  //                 //   {budget.budget}
+  //                 // </MenuItem>
+  //                 <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
+  //                   {budget.budget}
+  //                 </MenuItem>
+  //               ))}
+  //             </TextField>
+  //           {/* )} */}
+  //           {/* Affichage des montants si budget sélectionné */}
+  //           {formData.budgetsActions && (
+  //             <Grid item xs={12} md={6}>
+  //               <Box
+  //                 sx={{
+  //                   display: "flex",
+  //                   flexDirection: "column",
+  //                   gap: 2,
+  //                   backgroundColor: "#f4f4f4",
+  //                   padding: 2,
+  //                   borderRadius: "8px",
+  //                 }}
+  //               >
+  //                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+  //                   <Typography variant="body1">Budget initial</Typography>
+  //                   <Typography variant="body1" color="textSecondary">
+  //                     {montantsBudget.montant_initial || "non connu"}
+  //                   </Typography>
+  //                 </Box>
+
+  //                 <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+  //                   <Typography variant="body1">Budget restant</Typography>
+  //                   <Typography variant="body1" color="textSecondary">
+  //                     {montantsBudget.montant_restant || "non connu"}
+  //                   </Typography>
+  //                 </Box>
+  //               </Box>
+  //             </Grid>
+  //           )}
+  //         </Box>
+  //       </Grid>
+  //     </Grid>
+  //   </Box>
+  // );
   return (
-    <Box
-      sx={{
-        marginTop: 3,
-        padding: 2,
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <Grid container spacing={4} justifyContent="center">
-        <Grid item xs={12} md={6}>
-          <Typography variant="h6" gutterBottom>
-            Propriété de la demande
-          </Typography>
-          <Box>
+  <Box
+    sx={{
+      marginTop: 3,
+      padding: 2,
+      display: "flex",
+      justifyContent: "center",
+    }}
+  >
+    <Grid container spacing={4} justifyContent="center">
+      <Grid item xs={12}>
+        <Typography variant="h6" gutterBottom>
+          Propriété de la demande
+        </Typography>
+
+        <Grid container spacing={2}>
+          {/* ➤ Colonne de gauche : champs de formulaire */}
+          <Grid item xs={12} md={6}>
             {/* Type de demande */}
             <TextField
               select
@@ -298,32 +451,61 @@ const ProprieteDemande = ({
             </TextField>
 
             {/* Budgets / Actions */}
-            {/* {!formData.lignesTransversales && ( */}
-              <TextField
-                select
-                fullWidth
-                label="Budgets / Actions"
-                name="budgetsActions"
-                value={formData.budgetsActions || ""}
-                onChange={handleChange}
-                required
-                sx={{ marginBottom: 2 }}
+            <TextField
+              select
+              fullWidth
+              label="Budgets / Actions"
+              name="budgetsActions"
+              value={formData.budgetsActions || ""}
+              onChange={handleChange}
+              required
+              sx={{ marginBottom: 2 }}
+            >
+              {filteredBudgets.map((budget, index) => (
+                <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
+                  {budget.budget}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Grid>
+
+          {/* ➤ Colonne de droite : cadre des budgets */}
+          {formData.budgetsActions && (
+            <Grid item xs={12} md={6}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  backgroundColor: "#f4f4f4",
+                  padding: 2,
+                  borderRadius: "8px",
+                  height: "100%",
+                  justifyContent: "center",
+                }}
               >
-                {filteredBudgets.map((budget, index) => (
-                  // <MenuItem key={index} value={budget.budget}>
-                  //   {budget.budget}
-                  // </MenuItem>
-                  <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
-                    {budget.budget}
-                  </MenuItem>
-                ))}
-              </TextField>
-            {/* )} */}
-          </Box>
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1">Budget initial</Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    {montantsBudget.montant_initial || "non connu"}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                  <Typography variant="body1">Budget restant</Typography>
+                  <Typography variant="body1" color="textSecondary">
+                    {montantsBudget.montant_restant || "non connu"}
+                  </Typography>
+                </Box>
+              </Box>
+            </Grid>
+          )}
         </Grid>
       </Grid>
-    </Box>
-  );
+    </Grid>
+  </Box>
+);
+
 };
 
 export default ProprieteDemande;
