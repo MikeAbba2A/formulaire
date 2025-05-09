@@ -389,6 +389,7 @@ const LignesEngagements = ({
                 onChange={(e) => handleChangeLigne(index, e)}
                 label="Quantité"
                 name="quantite"
+                inputProps={{ min: 0 }}
               />
             </Grid>
 
@@ -401,6 +402,7 @@ const LignesEngagements = ({
                 onChange={(e) => handleChangeLigne(index, e)}
                 label="Prix Unitaire"
                 name="prixUnitaire"
+                inputProps={{ min: 0 }}
               />
             </Grid>
 

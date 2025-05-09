@@ -21,6 +21,7 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
             InputLabelProps={{
               shrink: true,
             }}
+            required 
           />
         </Grid>
 
@@ -49,31 +50,6 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
             onChange={handleChange}
           />
         </Grid>
-
-        {/* Pièce jointe */}
-        {/* <Grid item xs={12} md={3}>
-          <Typography variant="body1" gutterBottom>
-            Pièce jointe
-          </Typography>
-          <input
-            type="file"
-            name="pieceJointe[]"
-            onChange={handleFileChange}
-            multiple
-            style={{
-              display: "block",
-              padding: "10px 0",
-              border: "1px solid #ccc",
-              borderRadius: "4px",
-              width: "100%",
-            }}
-          />
-          <Typography variant="body2" color="textSecondary">
-            {formData.pieceJointe
-              ? formData.pieceJointe.name
-              : "Aucun fichier sélectionné."}
-          </Typography>
-        </Grid> */}
         <FileUpload handleFileChange={handleFileChange} selectedFiles={selectedFiles} />
       </Grid>
     </Box>
