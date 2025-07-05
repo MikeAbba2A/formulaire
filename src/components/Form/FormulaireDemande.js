@@ -52,6 +52,8 @@ const FormulaireDemande = () => {
     const [budgetRestant, setBudgetRestant] = useState("non connu");
     const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
     const [filteredBudgetss, setFilteredBudgets] = useState([]); // Budgets filtrés
+
+    const [budgetSelectionManuelle, setBudgetSelectionManuelle] = useState(false);
     
     const [nom, setNom] = useState([]);
     const [selectedFiles, setSelectedFiles] = useState([]);
@@ -60,6 +62,8 @@ const FormulaireDemande = () => {
       montant_initial: "non connu",
       montant_restant: "non connu"
     });
+
+    const [categoriePrincipale, setCategoriePrincipale] = useState(null);
 
     useEffect(() => {
         fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php")
@@ -135,6 +139,11 @@ const FormulaireDemande = () => {
     const handleChange = (e) => {
       const { name, value } = e.target;
       setFormData({ ...formData, [name]: value });
+
+      if (name === "budgetsActions") {
+        setBudgetSelectionManuelle(true);
+      }
+
     };
 
     const handleCheckboxChange = (e) => {
@@ -212,10 +221,10 @@ const FormulaireDemande = () => {
       }
 
       const montantRestantNum = parseFloat(montantsBudget.montant_restant);
-      if (!isNaN(montantRestantNum) && totalGeneral > montantRestantNum) {
-        alert("Le montant total de cette demande d'achat dépasse le montant restant disponible pour ce budget.");
-        return;
-      }
+      // if (!isNaN(montantRestantNum) && totalGeneral > montantRestantNum) {
+      //   alert("Le montant total de cette demande d'achat dépasse le montant restant disponible pour ce budget.");
+      //   return;
+      // }
 
       // Récupérer le demandeur depuis l'élément #demandeur
       const demandeurElement = document.getElementById("demandeur");
@@ -292,7 +301,7 @@ const FormulaireDemande = () => {
           demandeur,
         };
 
-        console.log("📌 Données soumises :", dataSoumise);
+  
   
         // Soumission des données
         const response = await fetch("process_form.php", {
@@ -371,7 +380,7 @@ const FormulaireDemande = () => {
     };
 
     const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
-      console.log("🔍 Fetching Budget Initial avec :", { annee, codePole, budget, categorie });
+      
       try {
         const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_sur_da.php", {
           method: "POST",
@@ -390,7 +399,7 @@ const FormulaireDemande = () => {
     };
 
     const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
-      console.log("🔍 Fetching Budget Restant avec :", { annee, codePole, budget, categorie });
+      
       try {
         const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
           method: "POST",
@@ -468,6 +477,10 @@ const FormulaireDemande = () => {
             budgetRestant={budgetRestant}
             setMontantsBudget={setMontantsBudget} 
             montantsBudget={montantsBudget}
+            budgetSelectionManuelle={budgetSelectionManuelle}
+            setBudgetSelectionManuelle={setBudgetSelectionManuelle}
+            categoriePrincipale={categoriePrincipale}
+            setCategoriePrincipale={setCategoriePrincipale}
           />
 
           {/* Section Propriété de la demande */}
@@ -486,7 +499,10 @@ const FormulaireDemande = () => {
             budgetRestant={budgetRestant}
             selectedPole={formData.services} 
             initialBudgetsInitial={rowBudgetsInitial} 
+            onCategorieChange={setCategoriePrincipale}
           />
+
+          
 
           <InformationLivraison 
               formData={formData}

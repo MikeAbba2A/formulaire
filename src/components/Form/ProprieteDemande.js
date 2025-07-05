@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Box, Grid, Typography, TextField, MenuItem } from "@mui/material";
+import { Box, Grid, Typography, TextField, MenuItem, Alert } from "@mui/material";
 
 const ProprieteDemande = ({
   formData,
@@ -9,10 +9,17 @@ const ProprieteDemande = ({
   fetchBudgetRestant,
   montantsBudget,
   setMontantsBudget,
+  budgetSelectionManuelle,
+  setBudgetSelectionManuelle,
+  categoriePrincipale,
+  setCategoriePrincipale
 }) => {
   const [budgets, setBudgets] = useState([]);
   const [poles, setPoles] = useState([]);
   const [filteredBudgets, setFilteredBudgets] = useState([]);
+  const [fournisseurType, setFournisseurType] = useState(null);
+  // const [categoriePrincipale, setCategoriePrincipale] = useState(null);
+
   
 
   // Détermination du mode à partir des paramètres URL
@@ -63,7 +70,7 @@ const ProprieteDemande = ({
         );
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const data = await response.json();
-        console.log(data);
+       
         
         setBudgets(data);
       } catch (error) {
@@ -91,17 +98,6 @@ const ProprieteDemande = ({
     fetchPoles();
   }, []);
 
-  // --- Calcul des budgets filtrés en fonction du pôle sélectionné ---
-  // const filteredBudgets = useMemo(() => {
-  //   if (!budgets.length || !formData.services) return [];
-  //   const poleCode = (polesMap[formData.services] || formData.services).toString();
-  //   
-  //   const filtered = budgets.filter(
-  //     (item) => item.code_pole && item.code_pole.toString() === poleCode
-  //   );
-  //   
-  //   return filtered;
-  // }, [budgets, formData.services]);
 
   useEffect(() => {
     const fetchFilteredBudgets = async () => {
@@ -133,18 +129,6 @@ const ProprieteDemande = ({
     fetchFilteredBudgets();
   }, [formData.services]);
 
-  // --- Mise à jour automatique du champ budgetsActions (seulement en mode création) ---
-  useEffect(() => {
-    // En mode création (pas edit/duplicate) et si aucune valeur n'est renseignée, on prend la première option filtrée
-    if (!isEditOrDuplicate && filteredBudgets.length > 0 && (!formData.budgetsActions || formData.budgetsActions.trim() === "")) {
-      
-      setFormData((prev) => ({
-        ...prev,
-        budgetsActions: filteredBudgets[0].budget,
-      }));
-    }
-  }, [filteredBudgets, formData.budgetsActions, setFormData, isEditOrDuplicate]);
-
   // --- Initialisation du type de demande à "achat" par défaut ---
   useEffect(() => {
     if (!formData.typeDemande) {
@@ -162,6 +146,13 @@ const ProprieteDemande = ({
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}${month}${day}`;
+  };
+
+  const handleBudgetChange = (e) => {
+  handleChange(e); // garde le comportement normal
+  if (e.target.name === "budgetsActions") {
+    setBudgetSelectionManuelle(true); // ✅ utilisateur a choisi un budget
+  }
   };
 
   // --- Gestion du changement de pôle ---
@@ -232,35 +223,118 @@ const ProprieteDemande = ({
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions, fetchBudgetRestant]);
 
   useEffect(() => {
-    if (formData.budgetsActions) {
+    const allReady = 
+      formData.exerciceBudgetaire &&
+      formData.services &&
+      formData.budgetsActions;
+
+    if (allReady) {
+     
       fetchMontantsBudget();
     }
-  }, [formData.budgetsActions]);
-
+  }, [
+    formData.exerciceBudgetaire,
+    formData.services,
+    formData.budgetsActions
+  ]);
 
   const fetchMontantsBudget = async () => {
-    try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/total_budget.php");
-      const data = await response.json();
-  
-      const budgetCode = formData.budgetsActions.split(" - ")[0]; // ✅ Comparaison plus fiable
-      const budget = data.find(item => item.actions === budgetCode);
-  
-      if (budget) {
-        console.log("✅ Budget trouvé :", budget);
-        setMontantsBudget({
-          montant_initial: budget.montant_initial,
-          montant_restant: budget.montant_restant,
-        });
-      } else {
-        console.warn("❌ Aucun budget trouvé pour :", budgetCode);
-        setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
+  try {
+    const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/total_budget.php");
+    const data = await response.json();
+
+    // ✅ Sécurisation de la récupération du code budget
+    const rawBudget = formData.budgetsActions || "";
+    const budgetCode = rawBudget.includes(" - ") ? rawBudget.split(" - ")[0] : rawBudget;
+
+    if (!budgetCode) {
+      console.warn("❌ Aucun code budget fourni.");
+      return;
+    }
+
+    const budget = data.find(item => item.actions === budgetCode);
+
+    if (budget) {
+      
+      setMontantsBudget({
+        montant_initial: budget.montant_initial,
+        montant_restant: budget.montant_restant,
+      });
+    } else {
+      console.warn("❌ Aucun budget trouvé pour :", budgetCode);
+      setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
+    }
+  } catch (error) {
+    console.error("Erreur lors de la récupération des montants du budget :", error);
+  }
+};
+
+
+useEffect(() => {
+  console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
+}, [categoriePrincipale]);
+
+  useEffect(() => {
+  if (categoriePrincipale === null) {
+    console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
+    return;
+  }
+
+  console.log("🚀 useEffect triggered");
+
+  const fetchFournisseurType = async () => {
+    console.log("📊 Déclenchement useEffect avec : ", {
+      exerciceBudgetaire: formData.exerciceBudgetaire,
+      services: formData.services,
+      budgetsActions: formData.budgetsActions,
+      categoriePrincipale,
+    });
+
+    if (
+      formData.exerciceBudgetaire &&
+      formData.services &&
+      formData.budgetsActions &&
+      categoriePrincipale
+    ) {
+      console.log("🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php");
+
+      try {
+        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseur_lucra_nonLucra.php");
+        const data = await response.json();
+        console.log("✅ Données reçues :", data);
+
+        const budgetCode = formData.budgetsActions.split(" - ")[0];
+        const matching = data.find(
+          item =>
+            item.annee === formData.exerciceBudgetaire.toString() &&
+            item.pole === formData.services &&
+            item.budget.startsWith(budgetCode) &&
+            item.categorie === categoriePrincipale
+        );
+
+        if (matching) {
+          console.log("🎯 Type fournisseur trouvé :", matching.type);
+          setFournisseurType(matching.type);
+        } else {
+          console.warn("❌ Aucun fournisseur correspondant trouvé.");
+          setFournisseurType(null);
+        }
+      } catch (error) {
+        console.error("⛔ Erreur fetch :", error);
       }
-    } catch (error) {
-      console.error("Erreur lors de la récupération des montants du budget :", error);
+    } else {
+      console.log("⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur.");
     }
   };
-  
+
+  fetchFournisseurType();
+}, [
+  formData.exerciceBudgetaire,
+  formData.services,
+  formData.budgetsActions,
+  categoriePrincipale
+]);
+
 
 
 
@@ -344,7 +418,7 @@ const ProprieteDemande = ({
               label="Budgets / Actions"
               name="budgetsActions"
               value={formData.budgetsActions || ""}
-              onChange={handleChange}
+              onChange={handleBudgetChange}
               required
               sx={{ marginBottom: 2 }}
             >
@@ -356,8 +430,8 @@ const ProprieteDemande = ({
             </TextField>
           </Grid>
 
-          {/* ➤ Colonne de droite : cadre des budgets */}
-          {formData.budgetsActions && (
+          {/*  Colonne de droite : cadre des budgets */}
+          {formData.exerciceBudgetaire && formData.services && budgetSelectionManuelle  && (
             <Grid item xs={12} md={6}>
               <Box
                 sx={{
@@ -367,22 +441,24 @@ const ProprieteDemande = ({
                   backgroundColor: "#f4f4f4",
                   padding: 2,
                   borderRadius: "8px",
-                  height: "100%",
+                  // height: "100%",
+                  width: "45%",
                   justifyContent: "center",
+                  marginTop: "25%",
+                  marginLeft: "17%"
                 }}
               >
-
                 {montantsBudget && (
                   <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="body1">Budget initial</Typography>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                      <Typography variant="body1">Budget global</Typography>
                       <Typography variant="body1" color="textSecondary">
                         {montantsBudget.montant_initial || "non connu"}
                       </Typography>
                     </Box>
 
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="body1">Budget restant</Typography>
+                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                      <Typography variant="body1">Budget global restant</Typography>
                       <Typography variant="body1" color="textSecondary">
                         {montantsBudget.montant_restant || "non connu"}
                       </Typography>
@@ -392,6 +468,62 @@ const ProprieteDemande = ({
               </Box>
             </Grid>
           )}
+          {fournisseurType === "1" && (
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginY: 4,
+                }}
+              >
+                <Alert
+                  severity="info"
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: "bold",
+                    backgroundColor: "#e3f2fd",
+                    color: "#0d47a1",
+                    paddingX: 4,
+                    paddingY: 2,
+                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  ⚠️ Attention, pour cette demande d'achat, merci de saisir le montant <strong>HT</strong>
+                </Alert>
+              </Box>
+            </Grid>
+          )}
+
+          {fournisseurType === "2" && (
+            <Grid item xs={12}>
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "center",
+                  marginY: 4,
+                }}
+              >
+                <Alert
+                  severity="success"
+                  sx={{
+                    fontSize: "1.1rem",
+                    fontWeight: "bold",
+                    backgroundColor: "#e8f5e9",
+                    color: "#1b5e20",
+                    paddingX: 4,
+                    paddingY: 2,
+                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  ⚠️ Attention, pour cette demande d'achat, merci de saisir le montant <strong>TTC</strong>.
+                </Alert>
+              </Box>
+            </Grid>
+          )}
+
         </Grid>
       </Grid>
     </Grid>
