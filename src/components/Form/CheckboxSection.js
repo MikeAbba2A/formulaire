@@ -38,7 +38,7 @@ const CheckboxSection = ({ formData, handleCheckboxChange }) => {
     }
     label={
       <Typography variant="body1">
-        Lignes d'engagement transversale
+        Dépense pluriannuelle
       </Typography>
     }
   />

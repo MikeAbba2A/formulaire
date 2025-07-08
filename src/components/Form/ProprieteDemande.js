@@ -39,6 +39,37 @@ const ProprieteDemande = ({
     PQDV: "6",
   };
 
+  const [montantProjet, setMontantProjet] = useState(null);
+
+useEffect(() => {
+  const fetchMontantProjet = async () => {
+    if (!formData?.budgetsActions) {
+      setMontantProjet(null);
+      return;
+    }
+
+    try {
+      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/projet.php");
+      const data = await response.json();
+
+      const matching = data.find(
+        (item) => item.budget === formData.budgetsActions
+      );
+
+      if (matching) {
+        setMontantProjet(matching); // contient .montant et .projet
+      } else {
+        setMontantProjet(null); // pas dans un projet
+      }
+    } catch (error) {
+      console.error("Erreur fetch montant projet :", error);
+      setMontantProjet(null);
+    }
+  };
+
+  fetchMontantProjet();
+}, [formData?.budgetsActions]);
+
   // --- Pré-remplissage du formulaire via le paramètre "json" dans l'URL ---
   useEffect(() => {
     const json = urlParams.get("json");
@@ -423,8 +454,11 @@ useEffect(() => {
               sx={{ marginBottom: 2 }}
             >
               {filteredBudgets.map((budget, index) => (
-                <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
-                  {budget.budget}
+                // <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
+                //   {budget.budget}
+                // </MenuItem>
+                <MenuItem key={index} value={budget.split(" - ")[0]}>
+                  {budget}
                 </MenuItem>
               ))}
             </TextField>
@@ -448,6 +482,36 @@ useEffect(() => {
                   marginLeft: "17%"
                 }}
               >
+
+                {montantProjet && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      backgroundColor: "#d1ecf1",
+                      padding: 2,
+                      borderRadius: "8px",
+                      marginBottom: 2,
+                      border: "1px solid #bee5eb"
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Projet : {montantProjet.projet}
+                    </Typography>
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body1">Montant total du projet</Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        {montantProjet.montant.toLocaleString("fr-FR", {
+                          style: "currency",
+                          currency: "EUR"
+                        })}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+
+
                 {montantsBudget && (
                   <>
                     <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>

@@ -31,6 +31,47 @@ const LignesEngagements = ({
    const urlParams = new URLSearchParams(window.location.search);
    const actionParam = urlParams.get("action");
    const isEditOrDuplicate = actionParam === "edit" || actionParam === "duplicate";
+
+   const newRow = {
+    categorie: "",
+    quantite: 0,
+    prixUnitaire: 0,
+    total: 0,
+    budgetInitial: null,
+    budgetRestant: null,
+    budgetAction: ""
+  };
+
+  const [anneeSelectionnee, setAnneeSelectionnee] = useState("");
+
+//   useEffect(() => {
+//   if (formData?.exerciceBudgetaire && !isNaN(parseInt(formData.exerciceBudgetaire))) {
+//     const annee = parseInt(formData.exerciceBudgetaire);
+
+//     setLignesEngagement({
+//       [annee]: [{ ...newRow }],
+//       [annee + 1]: [{ ...newRow }]
+//     });
+//   }
+// }, [formData?.exerciceBudgetaire]);
+
+useEffect(() => {
+  const annee = parseInt(formData?.exerciceBudgetaire);
+
+  if (!isNaN(annee)) {
+    if (formData.lignesTransversales) {
+      setLignesEngagement({
+        [annee]: lignesEngagements[annee] || [{ ...newRow }],
+        [annee + 1]: lignesEngagements[annee + 1] || [{ ...newRow }]
+      });
+    } else {
+      setLignesEngagement({
+        [annee]: lignesEngagements[annee] || [{ ...newRow }]
+      });
+    }
+  }
+}, [formData.exerciceBudgetaire, formData.lignesTransversales]);
+
  
   useEffect(() => {
       const updateBudgetInitial = async () => {
@@ -60,51 +101,30 @@ const LignesEngagements = ({
     updateBudgetRestant();
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
-  // Charger les budgets
+  // Charger les catégories
   // useEffect(() => {
-  //   fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
+  //   fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/categories.php")
   //     .then((response) => response.json())
   //     .then((data) => {
-        
-  //       setFilteredBudgets(data);
+  //       console.log("Catégories reçues :", data);
+  //       setCategories(data);
   //     })
-  //     .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+  //     .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
   // }, []);
 
-  // Charger les catégories
   useEffect(() => {
-    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/categories.php")
-      .then((response) => response.json())
-      .then((data) => {
-        
-        setCategories(data);
-      })
-      .catch((error) => console.error("Erreur lors de la récupération des catégories :", error));
-  }, []);
+  fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/categories.php")
+    .then((response) => response.json())
+    .then((data) => {
+      const arrayData = Object.values(data); // ✅ transforme l’objet en tableau
+      console.log("Catégories reçues :", arrayData);
+      setCategories(arrayData);
+    })
+    .catch((error) =>
+      console.error("Erreur lors de la récupération des catégories :", error)
+    );
+}, []);
 
-   // Charger les budgets filtrés en fonction du pôle sélectionné
-  //  useEffect(() => {
-
-  //   
-  //   const fetchFilteredBudgets = async () => {
-  //     try {
-  //       const response = await fetch("filtrage_budget_selon_pole.php");
-  //       const data = await response.json();
-
-  //       // Filtrer les budgets pour le pôle sélectionné
-  //       const budgetsForPole = data.filter((item) => item.code_pole === selectedPole);
-
-  //       
-  //       setFilteredBudgets(budgetsForPole);
-  //     } catch (error) {
-  //       console.error("Erreur lors de la récupération des budgets filtrés :", error);
-  //     }
-  //   };
-
-  //   if (selectedPole) {
-  //     fetchFilteredBudgets();
-  //   }
-  // }, [selectedPole]);
 
   useEffect(() => {
     const fetchFilteredBudgets = async () => {
@@ -118,23 +138,13 @@ const LignesEngagements = ({
         });
   
         const data =  await response.json();
-        // const data = await response.json();
   
         if (data.status === "error") {
           console.error("Erreur :", data.message);
           return;
         }
   
-        
         setFilteredBudgets(data ? data : "");
-        // setFilteredBudgets((prev) => {
-
-        //   if (data.length > 0) {
-        //     return data;
-        //   }
-        //   return prev; // Ne pas vider la liste si aucun budget trouvé
-        // });
-  
       } catch (error) {
         console.error("Erreur lors de la récupération des budgets filtrés :", error);
       }
@@ -151,14 +161,11 @@ const LignesEngagements = ({
         try {
           const parsed = JSON.parse(decodeURIComponent(json));
           
-  
           setFormData((prev) => {
             // Vérifier si les données sont identiques pour éviter une mise à jour inutile
             if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
-        
             }
      
-
             return { ...prev, ...parsed };
           });
         } catch (error) {
@@ -168,13 +175,10 @@ const LignesEngagements = ({
     }, [urlParams]);
   
   
-
     const [isInitialized, setIsInitialized] = useState(false);
 
     useEffect(() => {
       if (isEditOrDuplicate && formData.services) {
-        
-        // setFilteredBudgets([]); // Réinitialisation temporaire pour forcer le re-render TODO COUCOU
     
         const fetchFilteredBudgets = async () => {
           try {
@@ -191,13 +195,11 @@ const LignesEngagements = ({
               return;
             }
     
-            
             setFilteredBudgets(data);
           } catch (error) {
             console.error("⚠️ Erreur lors de la récupération des budgets filtrés :", error);
           }
         };
-    
         fetchFilteredBudgets();
       }
     }, [formData.services, isEditOrDuplicate]); 
@@ -206,7 +208,6 @@ const LignesEngagements = ({
       useEffect(() => {
         // En mode création (pas edit/duplicate) et si aucune valeur n'est renseignée, on prend la première option filtrée
         if (!isEditOrDuplicate && filteredBudgets.length > 0 && (!formData.budgetsActions || formData.budgetsActions.trim() === "")) {
-          
           setFormData((prev) => ({
             ...prev,
             budgetsActions: filteredBudgets[0].budget,
@@ -225,66 +226,83 @@ const LignesEngagements = ({
       }, [formData.typeDemande, setFormData]);
     
     
-
-    
-    
     // 🔹 Vérifie si les budgets disparaissent après une mise à jour de l'état
     useEffect(() => {
-      
     }, [formData]);
     
     useEffect(() => {
-      
     }, [formData.lignesEngagement]);
     
-    
-  
+  // const handleAddRow = () => {
+  //   setLignesEngagement(prevRows => [...prevRows, { ...newRow }]);
+  // };
 
-    
-
-  const handleAddRow = () => {
-    setLignesEngagement(prevRows => [...prevRows, { ...newRow }]);
+  const handleAddRow = (annee) => {
+    setLignesEngagement((prev) => {
+      const lignesPourAnnee = prev[annee] || [];
+      return {
+        ...prev,
+        [annee]: [...lignesPourAnnee, { ...newRow }],
+      };
+    });
   };
   
-  const handleRemoveRow = (index) => {
-    const updatedRows = lignesEngagements.filter((_, i) => i !== index);
-    setLignesEngagement(updatedRows);
+  // const handleRemoveRow = (index) => {
+  //   const updatedRows = lignesEngagements.filter((_, i) => i !== index);
+  //   setLignesEngagement(updatedRows);
+  // };
+
+  const handleRemoveRow = (annee, index) => {
+    setLignesEngagement((prev) => {
+      const lignesPourAnnee = prev[annee] || [];
+      const updated = lignesPourAnnee.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        [annee]: updated.length > 0 ? updated : [{ ...newRow }], // éviter un tableau vide
+      };
+    });
   };
   
   // const handleChangeLigne = async (index, e) => {
-    
   //   const { name: field, value } = e.target;
-  
+
   //   // Vérifier si l'index est valide
   //   if (!lignesEngagements[index]) {
   //     console.error("Index invalide :", index);
   //     return;
   //   }
-  
+
   //   // Cloner l'objet pour éviter la mutation directe
   //   const updatedRows = [...lignesEngagements];
   //   const updatedRow = { ...updatedRows[index] };
-  
+
   //   updatedRow[field] = value;
-  
+
   //   // Recalculer le total si la quantité ou le prix change
   //   if (field === "quantite" || field === "prixUnitaire") {
   //     updatedRow["total"] =
   //       parseFloat(updatedRow.quantite || 0) * parseFloat(updatedRow.prixUnitaire || 0);
   //   }
+
   //   // Mettre à jour l'état
   //   updatedRows[index] = updatedRow;
   //   setLignesEngagement(updatedRows);
-  
-  //   // Si la catégorie change, récupérer le montant initial pour cette ligne
+
+  //   // Si la catégorie change
   //   if (field === "categorie" && value) {
+  //     // 🟢 Notifie le parent (ProprieteDemande) de la catégorie sélectionnée
+  //     if (typeof onCategorieChange === "function") {
+  //       console.log("✅ Catégorie transmise au parent :", value);
+  //       onCategorieChange(value);
+  //     }
+
   //     if (!formData || !selectedPole) {
   //       console.error("Les valeurs de formData ou selectedPole sont manquantes");
   //       return;
   //     }
-  
+
   //     const selectedBudget = updatedRow.budgetAction || formData.budgetsActions;
-  
+
   //     try {
   //       updatedRow.budgetInitial = await fetchBudgetInitial(
   //         formData.exerciceBudgetaire,
@@ -298,58 +316,50 @@ const LignesEngagements = ({
   //         selectedBudget,
   //         value
   //       );
-  
+
   //       // Vérification : Bloquer si le montant initial est "non connu"
   //       if (updatedRow.budgetInitial === "non connu") {
   //         alert("Le montant initial est 'non connu'. Veuillez sélectionner une autre catégorie.");
   //         updatedRow["categorie"] = ""; // Réinitialiser la catégorie
   //       }
-  
+
   //       // Mettre à jour l'état après récupération des budgets
   //       updatedRows[index] = updatedRow;
   //       setLignesEngagement([...updatedRows]);
-  
   //     } catch (error) {
   //       console.error("Erreur lors de la récupération du budget initial :", error);
   //     }
   //   }
   // };
-  
-const handleChangeLigne = async (index, e) => {
+
+  // const totalGeneral = lignesEngagements?.reduce((acc, row) => acc + row.total, 0);
+
+const handleChangeLigne = async (annee, index, e) => {
   const { name: field, value } = e.target;
 
-  // Vérifier si l'index est valide
-  if (!lignesEngagements[index]) {
-    console.error("Index invalide :", index);
+  const lignesPourAnnee = lignesEngagements[annee];
+  if (!lignesPourAnnee || !lignesPourAnnee[index]) {
+    console.error("Index ou année invalide :", annee, index);
     return;
   }
 
-  // Cloner l'objet pour éviter la mutation directe
-  const updatedRows = [...lignesEngagements];
-  const updatedRow = { ...updatedRows[index] };
+  const updatedRow = { ...lignesPourAnnee[index], [field]: value };
 
-  updatedRow[field] = value;
-
-  // Recalculer le total si la quantité ou le prix change
+  // Recalcul du total si besoin
   if (field === "quantite" || field === "prixUnitaire") {
     updatedRow["total"] =
       parseFloat(updatedRow.quantite || 0) * parseFloat(updatedRow.prixUnitaire || 0);
   }
 
-  // Mettre à jour l'état
-  updatedRows[index] = updatedRow;
-  setLignesEngagement(updatedRows);
-
-  // Si la catégorie change
+  // Si la catégorie change → traitement spécial
   if (field === "categorie" && value) {
-    // 🟢 Notifie le parent (ProprieteDemande) de la catégorie sélectionnée
     if (typeof onCategorieChange === "function") {
       console.log("✅ Catégorie transmise au parent :", value);
       onCategorieChange(value);
     }
 
     if (!formData || !selectedPole) {
-      console.error("Les valeurs de formData ou selectedPole sont manquantes");
+      console.error("Valeurs manquantes pour récupération du budget");
       return;
     }
 
@@ -357,152 +367,144 @@ const handleChangeLigne = async (index, e) => {
 
     try {
       updatedRow.budgetInitial = await fetchBudgetInitial(
-        formData.exerciceBudgetaire,
+        annee,
         selectedPole,
         selectedBudget,
         value
       );
       updatedRow.budgetRestant = await fetchBudgetRestant(
-        formData.exerciceBudgetaire,
+        annee,
         selectedPole,
         selectedBudget,
         value
       );
 
-      // Vérification : Bloquer si le montant initial est "non connu"
       if (updatedRow.budgetInitial === "non connu") {
         alert("Le montant initial est 'non connu'. Veuillez sélectionner une autre catégorie.");
-        updatedRow["categorie"] = ""; // Réinitialiser la catégorie
+        updatedRow["categorie"] = "";
       }
-
-      // Mettre à jour l'état après récupération des budgets
-      updatedRows[index] = updatedRow;
-      setLignesEngagement([...updatedRows]);
     } catch (error) {
-      console.error("Erreur lors de la récupération du budget initial :", error);
+      console.error("Erreur lors de la récupération des budgets :", error);
     }
   }
+
+  // Mise à jour finale
+  setLignesEngagement((prev) => ({
+    ...prev,
+    [annee]: prev[annee].map((row, i) => (i === index ? updatedRow : row)),
+  }));
 };
 
 
+  const totalGeneral = Object.values(lignesEngagements || {}).flat().reduce(
+  (acc, row) => acc + (row.total || 0),
+  0
+);
 
-  const totalGeneral = lignesEngagements?.reduce((acc, row) => acc + row.total, 0);
+const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
+  return acc + lignes.reduce((sousTotal, ligne) => sousTotal + ligne.total, 0);
+}, 0);
 
+  
   return (
-    <Box sx={{ marginTop: 3 }}>
-      <Typography variant="h6" gutterBottom>
-        {formData.lignesTransversales
-          ? "Lignes d'engagements Transversaux"
-          : "Lignes d'engagements"}
-      </Typography>
+  <Box sx={{ marginTop: 3 }}>
+    <Typography variant="h6" gutterBottom>
+      {formData.lignesTransversales
+        ? "Dépense pluriannuelle"
+        : "Lignes d'engagements"}
+    </Typography>
 
-      {lignesEngagements?.map((row, index) => {
-        // Priorité au budget local (row.budgetAction), sinon selectedBudget global
-        const activeBudget = row.budgetAction || selectedBudget;
+    {Object.entries(lignesEngagements).map(([annee, lignes], blocIndex) => (
+      <Box key={annee} sx={{ mb: 5 }}>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          {/* Lignes d'engagement {parseInt(formData.exerciceBudgetaire) + blocIndex} */}
+          { !isNaN(parseInt(formData?.exerciceBudgetaire))
+            ? `Lignes d'engagement ${parseInt(formData.exerciceBudgetaire) + blocIndex}`
+            : `Lignes d'engagement` }
+        </Typography>
 
-        // Filtrer les catégories selon le budget actif
-        const filteredCategories = categories.filter(
-          (cat) => cat.parent === activeBudget
-        );
-          
-        
-          
-        return (
-          <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
-            {/* Budgets / Actions */}
-            {/* {formData.lignesTransversales && (
-              <Grid item xs={10} md={2}>
+        {lignes.map((row, index) => {
+          const activeBudget = row.budgetAction || selectedBudget;
+          // const filteredCategories = categories.filter(cat => cat.parent === activeBudget);
+          const filteredCategories = categories.filter(cat => {
+            return cat.parent === activeBudget && cat.annee === annee;
+          });
+
+          return (
+            <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
+              {/* Catégorie */}
+              <Grid item xs={12} md={2}>
                 <TextField
                   select
                   fullWidth
-                  value={row.budgetAction}
-                  onChange={(e) => handleChangeLigne(index, e)}
-                  name="budgetAction"
-                  label="Budgets / Actions"
+                  label="Catégorie"
+                  value={row.categorie}
+                  onChange={(e) => handleChangeLigne(annee, index, e)}
+                  disabled={!activeBudget}
+                  name="categorie"
                 >
-                  <MenuItem value="">-- Sélectionner un budget--</MenuItem>
-                  {filteredBudgets.map((budget, i) => ( 
-                    <MenuItem key={i} value={budget.budget}>
-                      {budget.budget}
+                  <MenuItem value="">-- Sélectionner une catégorie --</MenuItem>
+                  {filteredCategories.map((category, i) => (
+                    <MenuItem key={i} value={category.titre}>
+                      {category.titre}
                     </MenuItem>
                   ))}
                 </TextField>
               </Grid>
-            )} */}
 
-            {/* Catégories */}
-            <Grid item xs={12} md={2}>
-              <TextField
-                select
-                fullWidth
-                label="Catégorie"
-                value={row.categorie}
-                onChange={(e) => handleChangeLigne(index, e)}
-                disabled={!activeBudget}
-                name="categorie"
-              >
-                <MenuItem value="">-- Sélectionner une catégorie --</MenuItem>
-                {filteredCategories.map((category, i) => (
-                  <MenuItem key={i} value={category.titre}>
-                    {category.titre}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
+              {/* Quantité */}
+              <Grid item xs={6} md={1}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  value={row.quantite}
+                  onChange={(e) => handleChangeLigne(annee, index, e)}
+                  label="Quantité"
+                  name="quantite"
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
 
-            {/* Quantité */}
-            <Grid item xs={6} md={1}>
-              <TextField
-                fullWidth
-                type="number"
-                value={row.quantite}
-                onChange={(e) => handleChangeLigne(index, e)}
-                label="Quantité"
-                name="quantite"
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
+              {/* Prix unitaire */}
+              <Grid item xs={6} md={1}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  value={row.prixUnitaire}
+                  onChange={(e) => handleChangeLigne(annee, index, e)}
+                  label="Prix Unitaire"
+                  name="prixUnitaire"
+                  inputProps={{ min: 0 }}
+                />
+              </Grid>
 
-            {/* Prix unitaire */}
-            <Grid item xs={6} md={1}>
-              <TextField
-                fullWidth
-                type="number"
-                value={row.prixUnitaire}
-                onChange={(e) => handleChangeLigne(index, e)}
-                label="Prix Unitaire"
-                name="prixUnitaire"
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
+              {/* Total */}
+              <Grid item xs={6} md={1}>
+                <TextField
+                  fullWidth
+                  value={row.total.toFixed(2)}
+                  InputProps={{ readOnly: true }}
+                  label="Total"
+                />
+              </Grid>
 
-            {/* Total */}
-            <Grid item xs={6} md={1}>
-              <TextField
-                fullWidth
-                value={row.total.toFixed(2)}
-                InputProps={{ readOnly: true }}
-                label="Total"
-              />
-            </Grid>
-
-            {/* Actions */}
-            <Grid item xs={12} md={2}>
-              <IconButton
-                color="error"
-                onClick={() => handleRemoveRow(index)}
-                disabled={lignesEngagements.length === 1}
-              >
-                <RemoveCircleOutlineIcon />
-              </IconButton>
-              {index === lignesEngagements.length - 1 && (
-                <IconButton color="primary" onClick={handleAddRow}>
-                  <AddCircleOutlineIcon />
+              {/* Actions */}
+              <Grid item xs={12} md={2}>
+                <IconButton
+                  color="error"
+                  onClick={() => handleRemoveRow(annee, index)}
+                  disabled={lignes.length === 1}
+                >
+                  <RemoveCircleOutlineIcon />
                 </IconButton>
-              )}
-            </Grid>
-            {/* Gestion des budgets */}
-            
+                {index === lignes.length - 1 && (
+                  <IconButton color="primary" onClick={() => handleAddRow(annee)}>
+                    <AddCircleOutlineIcon />
+                  </IconButton>
+                )}
+              </Grid>
+
+              {/* Affichage des budgets */}
               <Grid item xs={12} md={3}>
                 <Box
                   sx={{
@@ -517,38 +519,49 @@ const handleChangeLigne = async (index, e) => {
                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography variant="body1">Budget initial</Typography>
                     <Typography variant="body1" color="textSecondary">
-                      {lignesEngagements[index].budgetInitial || "non connu"} {/* Affiche le montant de la ligne */}
+                      {row.budgetInitial || "non connu"}
                     </Typography>
                   </Box>
-
                   <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                     <Typography variant="body1">Budget restant</Typography>
                     <Typography variant="body1" color="textSecondary">
-                    {lignesEngagements[index].budgetRestant || "non connu"}
+                      {row.budgetRestant || "non connu"}
                     </Typography>
                   </Box>
                 </Box>
               </Grid>
-          </Grid>
-        );
-      })}
+            </Grid>
+          );
+        })}
 
-      {/* Total général */}
-      <Box 
-        sx={{ 
-          marginTop: 2, 
-          display: "flex", 
-          justifyContent: "center", 
-          alignItems: "center", // Centre verticalement
-          height: "100px" // Exemple d'une hauteur fixe pour centrer verticalement
-        }}
-      >
+        {/* Total par bloc */}
+        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
+          <Typography variant="h6">
+            
+            {/* {formData?.exerciceBudgetaire && !isNaN(parseInt(annee)) 
+              ? `Total ${annee} : ${lignes.reduce((acc, row) => acc + row.total, 0).toFixed(2)} €`
+              : `Total : ${lignes.reduce((acc, row) => acc + row.total, 0).toFixed(2)} €`} */}
+
+            {!isNaN(parseInt(formData?.exerciceBudgetaire))
+              ? `Total ${parseInt(formData.exerciceBudgetaire) + blocIndex} : ${lignes.reduce((acc, row) => acc + row.total, 0).toFixed(2)} €`
+              : `Total : ${lignes.reduce((acc, row) => acc + row.total, 0).toFixed(2)} €`}
+
+          </Typography>
+        </Box>
+      </Box>
+    ))}
+    {formData?.lignesTransversales && (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
         <Typography variant="h6">
-          Total Général : {totalGeneral?.toFixed(2)} €
+          Total général : {totalGeneral.toFixed(2)} €
         </Typography>
       </Box>
-    </Box>
-  );
+    )}
+  </Box>
+);
+
+
+  
 };
 
 export default LignesEngagements;

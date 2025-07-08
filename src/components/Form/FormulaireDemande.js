@@ -43,9 +43,14 @@ const FormulaireDemande = () => {
       copieDocument: false, // Première checkbox
       lignesTransversales: false, // Deuxième checkbox
     });
-    const [lignesEngagement, setLignesEngagement] = useState([
-      newRow
-    ]);
+    // const [lignesEngagement, setLignesEngagement] = useState([
+    //   newRow
+    // ]);
+
+    const currentYear = new Date().getFullYear();
+    const [lignesEngagement, setLignesEngagement] = useState({
+      [currentYear]: [newRow]
+    });
 
     const [open, setOpen] = useState(false); // État pour la popup
     const [budgetInitial, setBudgetInitial] = useState("non connu");
@@ -64,6 +69,18 @@ const FormulaireDemande = () => {
     });
 
     const [categoriePrincipale, setCategoriePrincipale] = useState(null);
+
+    useEffect(() => {
+      if (formData.lignesTransversales) {
+        const annee1 = formData.exerciceBudgetaire;
+        const annee2 = parseInt(annee1) + 1;
+
+        setLignesEngagement((prev) => ({
+          ...prev,
+          [annee2]: prev[annee2] || [newRow]  // Ne recrée pas si déjà présent
+        }));
+      }
+    }, [formData.lignesTransversales, formData.exerciceBudgetaire]);
 
     useEffect(() => {
         fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php")
