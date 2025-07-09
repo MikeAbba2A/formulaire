@@ -70,6 +70,8 @@ const FormulaireDemande = () => {
 
     const [categoriePrincipale, setCategoriePrincipale] = useState(null);
 
+    const [validationPossible, setValidationPossible] = useState(true);
+
     useEffect(() => {
       if (formData.lignesTransversales) {
         const annee1 = formData.exerciceBudgetaire;
@@ -91,15 +93,16 @@ const FormulaireDemande = () => {
           })
           .catch((error) => console.error("Erreur lors de la récupération de l'utilisateur connecté:", error));
       }, []);
-    useEffect(() => {
-      fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
-        .then((response) => response.json())
-        .then((data) => {
+    // useEffect(() => {
+    //   fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php")
+    //     .then((response) => response.json())
+    //     .then((data) => {
           
-          setFilteredBudgets(data);
-        })
-        .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
-    }, []);
+    //       setFilteredBudgets(data);
+    //     })
+    //     .catch((error) => console.error("Erreur lors de la récupération des budgets :", error));
+    // }, []);
+
     useEffect(() => {
       const urlParams = new URLSearchParams(window.location.search);
       const jsonData = urlParams.get("json");
@@ -210,6 +213,11 @@ const FormulaireDemande = () => {
 
     const handleSubmit = async (e) => {
       e.preventDefault();
+
+      if (!validationPossible) {
+      alert("⚠️ Veuillez corriger les erreurs avant de valider.");
+      return;
+    }
 
       const adresseParDefaut = `VAINCRE LA MUCOVISCIDOSE\n181 RUE DE TOLBIAC\n75013 Paris\nfactures@vaincrelamuco.org`;
 
@@ -532,6 +540,7 @@ const FormulaireDemande = () => {
           <Box sx={{ textAlign: "center", marginTop: 3 }}>
             <Button
               type="submit"
+              disabled={!validationPossible}
               variant="contained"
               color="primary"
               size="large"

@@ -41,77 +41,103 @@ const ProprieteDemande = ({
 
   const [montantProjet, setMontantProjet] = useState(null);
 
-useEffect(() => {
-  const fetchMontantProjet = async () => {
-    if (!formData?.budgetsActions) {
-      setMontantProjet(null);
-      return;
-    }
+  const [pluriAnnuel, setPluriAnnuel] = useState(false);
+  const [validationPossible, setValidationPossible] = useState(true);
 
+  const verifierBudgetPluriannuel = async (budgetCode, annee1, annee2) => {
     try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/projet.php");
+      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php"); // Ajuste le chemin si besoin
       const data = await response.json();
 
-      const matching = data.find(
-        (item) => item.budget === formData.budgetsActions
+      // Filtrer les budgets correspondant à l'année et au code
+      const budgetAnnee1 = data.find(
+        (item) => item.annee === annee1.toString() && item.budget.startsWith(budgetCode)
+      );
+      const budgetAnnee2 = data.find(
+        (item) => item.annee === annee2.toString() && item.budget.startsWith(budgetCode)
       );
 
-      if (matching) {
-        setMontantProjet(matching); // contient .montant et .projet
-      } else {
-        setMontantProjet(null); // pas dans un projet
-      }
+      return {
+        existeAnnee1: !!budgetAnnee1,
+        existeAnnee2: !!budgetAnnee2,
+      };
     } catch (error) {
-      console.error("Erreur fetch montant projet :", error);
-      setMontantProjet(null);
+      console.error("Erreur lors de la vérification des budgets :", error);
+      return { existeAnnee1: false, existeAnnee2: false };
     }
   };
+
+  useEffect(() => {
+    const fetchMontantProjet = async () => {
+      if (!formData?.budgetsActions) {
+        setMontantProjet(null);
+        return;
+      }
+
+      try {
+        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/projet.php");
+        const data = await response.json();
+
+        const matching = data.find(
+          (item) => item.budget === formData.budgetsActions
+        );
+
+        if (matching) {
+          setMontantProjet(matching); // contient .montant et .projet
+        } else {
+          setMontantProjet(null); // pas dans un projet
+        }
+      } catch (error) {
+        console.error("Erreur fetch montant projet :", error);
+        setMontantProjet(null);
+      }
+    };
 
   fetchMontantProjet();
 }, [formData?.budgetsActions]);
 
   // --- Pré-remplissage du formulaire via le paramètre "json" dans l'URL ---
-  useEffect(() => {
-    const json = urlParams.get("json");
-    if (json) {
-      try {
-        const parsed = JSON.parse(decodeURIComponent(json));
+  // useEffect(() => {
+  //   const json = urlParams.get("json");
+  //   if (json) {
+  //     try {
+  //       const parsed = JSON.parse(decodeURIComponent(json));
         
 
-        setFormData((prev) => {
-          // Vérifier si les données sont identiques pour éviter une mise à jour inutile
-          if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
-            return prev; // Pas de changement, éviter un re-render
-          }
-          return { ...prev, ...parsed };
-        });
-      } catch (error) {
-        console.error("Erreur lors du parsing du JSON dans l'URL :", error);
-      }
+  //       setFormData((prev) => {
+  //         // Vérifier si les données sont identiques pour éviter une mise à jour inutile
+  //         if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
+  //           return prev; // Pas de changement, éviter un re-render
+  //         }
+  //         return { ...prev, ...parsed };
+  //       });
+  //     } catch (error) {
+  //       console.error("Erreur lors du parsing du JSON dans l'URL :", error);
+  //     }
+  //   }
+  // }, [urlParams]);
+
+
+const [dataBudgets, setDataBudgets] = useState([]);
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php");
+      const data = await response.json();
+      console.log("✅ Données budgets chargées", data);
+      setDataBudgets(data);
+    } catch (error) {
+      console.error("⛔ Erreur lors du chargement initial des budgets :", error);
     }
-  }, [urlParams]);
+  };
 
+  fetchData();
+}, []);
 
-  // --- Récupération des budgets depuis data.php ---
-  useEffect(() => {
-    const fetchBudgets = async () => {
-      try {
-        const response = await fetch(
-          "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php"
-        );
-        if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
-        const data = await response.json();
-       
-        
-        setBudgets(data);
-      } catch (error) {
-        console.error("Erreur lors de la récupération des budgets :", error);
-      }
-    };
-    fetchBudgets();
-  }, []);
 
   // --- Récupération des pôles depuis pole.php ---
+
   useEffect(() => {
     const fetchPoles = async () => {
       try {
@@ -179,12 +205,54 @@ useEffect(() => {
     return `${year}${month}${day}`;
   };
 
-  const handleBudgetChange = (e) => {
-  handleChange(e); // garde le comportement normal
-  if (e.target.name === "budgetsActions") {
-    setBudgetSelectionManuelle(true); // ✅ utilisateur a choisi un budget
-  }
+  const handleBudgetChange = async (e) => {
+    handleChange(e); // ✅ garde le comportement normal
+    if (e.target.name === "budgetsActions") {
+      setBudgetSelectionManuelle(true); // ✅ utilisateur a choisi un budget
+
+      const selectedBudgetCode = e.target.value;
+
+      // ➕ Vérification uniquement si la case pluriannuelle est cochée
+      if (formData.lignesTransversales) {
+        const annee1 = parseInt(formData.exerciceBudgetaire);
+        const annee2 = annee1 + 1;
+
+        try {
+          const data = dataBudgets;
+
+          const budgetAnnee1 = data.find(
+            (item) => item.annee === annee1.toString() && item.budget.startsWith(selectedBudgetCode)
+          );
+          const budgetAnnee2 = data.find(
+            (item) => item.annee === annee2.toString() && item.budget.startsWith(selectedBudgetCode)
+          );
+          console.log("annee 1 =>", budgetAnnee1);
+          console.log("annee 2 =>", budgetAnnee2);
+
+          if (!budgetAnnee1 || !budgetAnnee2) {
+            alert(
+              `❌ Le budget "${selectedBudgetCode}" n'est pas disponible pour :\n` +
+              `${!budgetAnnee1 ? `- l'année ${annee1}\n` : ''}` +
+              `${!budgetAnnee2 ? `- l'année ${annee2}` : ''}`
+            );
+            setValidationPossible(false); // 🔒 bloquer la validation
+          } else {
+            setValidationPossible(true); // ✅ OK
+          }
+        } catch (error) {
+          
+          console.error("⛔ Erreur lors du chargement des budgets :", error);
+          alert("Erreur lors de la vérification des budgets pluriannuels.");
+          setValidationPossible(false);
+        }
+      } else {
+        // Si ce n'est pas une dépense pluriannuelle, réactiver la validation
+        setValidationPossible(true);
+      }
+    }
   };
+
+
 
   // --- Gestion du changement de pôle ---
   const handlePoleChange = async (e) => {
@@ -454,9 +522,6 @@ useEffect(() => {
               sx={{ marginBottom: 2 }}
             >
               {filteredBudgets.map((budget, index) => (
-                // <MenuItem key={index} value={budget.budget.split(" - ")[0]}>
-                //   {budget.budget}
-                // </MenuItem>
                 <MenuItem key={index} value={budget.split(" - ")[0]}>
                   {budget}
                 </MenuItem>
@@ -464,74 +529,83 @@ useEffect(() => {
             </TextField>
           </Grid>
 
-          {/*  Colonne de droite : cadre des budgets */}
-          {formData.exerciceBudgetaire && formData.services && budgetSelectionManuelle  && (
+          {(montantProjet || (formData.exerciceBudgetaire && formData.services && budgetSelectionManuelle)) && (
             <Grid item xs={12} md={6}>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 2,
-                  backgroundColor: "#f4f4f4",
-                  padding: 2,
-                  borderRadius: "8px",
-                  // height: "100%",
-                  width: "45%",
-                  justifyContent: "center",
-                  marginTop: "25%",
-                  marginLeft: "17%"
-                }}
-              >
-
-                {montantProjet && (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      backgroundColor: "#d1ecf1",
-                      padding: 2,
-                      borderRadius: "8px",
-                      marginBottom: 2,
-                      border: "1px solid #bee5eb"
-                    }}
-                  >
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Projet : {montantProjet.projet}
+              {/* Bloc projet */}
+              {montantProjet && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    backgroundColor: "#d1ecf1",
+                    padding: 2,
+                    borderRadius: "8px",
+                    marginBottom: 2,
+                    border: "1px solid #bee5eb"
+                  }}
+                >
+                  <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                    Projet : {montantProjet.projet}
+                  </Typography>
+                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                    <Typography variant="body1">Montant total du projet</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {montantProjet.montant.toLocaleString("fr-FR", {
+                        style: "currency",
+                        currency: "EUR"
+                      })}
                     </Typography>
-                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                      <Typography variant="body1">Montant total du projet</Typography>
-                      <Typography variant="body1" color="textSecondary">
-                        {montantProjet.montant.toLocaleString("fr-FR", {
-                          style: "currency",
-                          currency: "EUR"
-                        })}
-                      </Typography>
-                    </Box>
                   </Box>
-                )}
+                </Box>
+              )}
 
+              {/* Bloc budget global */}
+              {montantsBudget && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    backgroundColor: "#d1ecf1",
+                    padding: 2,
+                    borderRadius: "8px",
+                    marginBottom: 2,
+                    border: "1px solid #bee5eb"
+                  }}
+                >
+                  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                    <Typography variant="body1">Budget global</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {/* {montantsBudget.montant_initial || "non connu"} */}
+                      {montantsBudget.montant_initial
+                        ? montantsBudget.montant_initial.toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "EUR"
+                          })
+                        : "non connu"}
+                    </Typography>
+                  </Box>
 
-                {montantsBudget && (
-                  <>
-                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                      <Typography variant="body1">Budget global</Typography>
-                      <Typography variant="body1" color="textSecondary">
-                        {montantsBudget.montant_initial || "non connu"}
-                      </Typography>
-                    </Box>
-
-                    <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                      <Typography variant="body1">Budget global restant</Typography>
-                      <Typography variant="body1" color="textSecondary">
-                        {montantsBudget.montant_restant || "non connu"}
-                      </Typography>
-                    </Box>
-                  </>
-                )}
-              </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
+                    <Typography variant="body1">Budget global restant</Typography>
+                    <Typography variant="body1" color="textSecondary">
+                      {/* {montantsBudget.montant_restant || "non connu"} */}
+                      {montantsBudget.montant_restant
+                        ? montantsBudget.montant_restant.toLocaleString("fr-FR", {
+                            style: "currency",
+                            currency: "EUR"
+                          })
+                        : "non connu"}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </Grid>
           )}
+
+
+
           {fournisseurType === "1" && (
             <Grid item xs={12}>
               <Box
