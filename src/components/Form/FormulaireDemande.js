@@ -223,14 +223,28 @@ const FormulaireDemande = () => {
 
 
       // Vérifier si toutes les lignes ont une catégorie sélectionnée
-      const categorieManquante = lignesEngagement.some((row) => !row.categorie);
+      // const categorieManquante = lignesEngagement.some((row) => !row.categorie);
+
+      let toutesLesLignes = [];
+
+      if (Array.isArray(lignesEngagement)) {
+        toutesLesLignes = lignesEngagement;
+      } else {
+        toutesLesLignes = Object.values(lignesEngagement).flat();
+      }
+
+      const categorieManquante = toutesLesLignes.some((row) => !row.categorie);
+
       if (categorieManquante) {
         alert("Toutes les lignes doivent avoir une catégorie sélectionnée.");
         return; // Bloquer la soumission
       }
   
       // Calculer le total général
-      const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
+      // const totalGeneral = lignesEngagement.reduce((acc, row) => acc + (row.total || 0), 0);
+
+     
+      const totalGeneral = toutesLesLignes.reduce((acc, row) => acc + (row.total || 0), 0);
 
       const montantInitialInconnu = rowBudgetsInitial.some((montant) => montant === "non connu");
   
@@ -305,7 +319,7 @@ const FormulaireDemande = () => {
         const generatedNumeroPiece = `${polesMap[formData.services]}${getCurrentDate()}${sequenceData.sequence}`;
 
         // Ajout du budget initial et restant dans chaque ligne d'engagement
-        const lignesEngagementAvecBudget = lignesEngagement.map((ligne) => ({
+        const lignesEngagementAvecBudget = toutesLesLignes.map((ligne) => ({
           ...ligne,
           budgetInitial: ligne.budgetInitial || "non connu",
           budgetRestant: ligne.budgetRestant || "non connu",
@@ -317,11 +331,46 @@ const FormulaireDemande = () => {
           adresseLivraison: adresseParDefaut,
           adresseFacturation: adresseParDefaut,
         };
+
+        // let lignesEngagementFormat;
+
+        // if (formData.lignesTransversales) {
+        //   // On est en mode pluriannuel : reconstruire les lignes par année
+        //   lignesEngagementFormat = {};
+
+        //   for (const ligne of toutesLesLignes) {
+        //     const annee = ligne.annee || formData.exerciceBudgetaire; // au cas où
+        //     if (!lignesEngagementFormat[annee]) {
+        //       lignesEngagementFormat[annee] = [];
+        //     }
+        //     lignesEngagementFormat[annee].push(ligne);
+        //   }
+        // } else {
+        //   // Cas simple : tableau plat
+        //   lignesEngagementFormat = lignesEngagementAvecBudget;
+        // }
+
+        let lignesEngagementFormat;
+
+        if (formData.lignesTransversales) {
+          // On est en mode pluriannuel
+          lignesEngagementFormat = {};
+
+          Object.entries(lignesEngagement).forEach(([annee, lignes]) => {
+            lignesEngagementFormat[annee] = lignes.map((ligne) => ({
+              ...ligne,
+              annee: annee  // ✅ Ajoute l'année dans chaque ligne
+            }));
+          });
+        } else {
+          // Mode simple
+          lignesEngagementFormat = lignesEngagementAvecBudget;
+        }
   
         // Préparer les données à soumettre avec le numéro de pièce mis à jour
         const dataSoumise = {
           ...formDataUpdated,
-          lignesEngagement: lignesEngagementAvecBudget,
+          lignesEngagement: lignesEngagementFormat,
           numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
           demandeur,
         };
