@@ -265,6 +265,28 @@ const FormulaireDemande = () => {
       //   return;
       // }
 
+
+      let projetNom = "";
+      let projetMontant = "";
+
+      try {
+        const projetResponse = await fetch("projet.php");
+        const projetsData = await projetResponse.json();
+
+        const projetAssocie = projetsData.find(
+          (p) => p.budget === formData.budgetsActions
+        );
+
+        if (projetAssocie) {
+          projetNom = projetAssocie.projet || "";
+          projetMontant = projetAssocie.montant || "";
+        }
+      } catch (error) {
+        console.warn("⚠️ Impossible de récupérer les données de projet :", error);
+      }
+
+
+
       // Récupérer le demandeur depuis l'élément #demandeur
       const demandeurElement = document.getElementById("demandeur");
       const demandeur = demandeurElement
@@ -325,30 +347,23 @@ const FormulaireDemande = () => {
           budgetRestant: ligne.budgetRestant || "non connu",
       }));
 
+      // Si un montant est connu, on le remplace
+      const budgetInitialFormValue = montantsBudget.montant_initial !== "non connu"
+        ? montantsBudget.montant_initial
+        : "non connu";
+
+      const budgetRestantFormValue = montantsBudget.montant_restant !== "non connu"
+        ? montantsBudget.montant_restant
+        : "non connu";
+
         // Mettre à jour formData avec l'adresse par défaut si elles ne sont pas remplies
         const formDataUpdated = {
           ...formData,
           adresseLivraison: adresseParDefaut,
           adresseFacturation: adresseParDefaut,
+          budgetInitial: budgetInitialFormValue,
+          budgetRestant: budgetRestantFormValue,
         };
-
-        // let lignesEngagementFormat;
-
-        // if (formData.lignesTransversales) {
-        //   // On est en mode pluriannuel : reconstruire les lignes par année
-        //   lignesEngagementFormat = {};
-
-        //   for (const ligne of toutesLesLignes) {
-        //     const annee = ligne.annee || formData.exerciceBudgetaire; // au cas où
-        //     if (!lignesEngagementFormat[annee]) {
-        //       lignesEngagementFormat[annee] = [];
-        //     }
-        //     lignesEngagementFormat[annee].push(ligne);
-        //   }
-        // } else {
-        //   // Cas simple : tableau plat
-        //   lignesEngagementFormat = lignesEngagementAvecBudget;
-        // }
 
         let lignesEngagementFormat;
 
@@ -373,12 +388,14 @@ const FormulaireDemande = () => {
           lignesEngagement: lignesEngagementFormat,
           numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
           demandeur,
+          projetNom,
+          projetMontant
         };
 
   
-  
+       // @@@
         // Soumission des données
-        const response = await fetch("process_form.php", {
+        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/process_form.php", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
