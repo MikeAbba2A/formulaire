@@ -381,11 +381,17 @@ const FormulaireDemande = () => {
           // Mode simple
           lignesEngagementFormat = lignesEngagementAvecBudget;
         }
+
+        const urlParams = new URLSearchParams(window.location.search);
+        console.log("URL params =", window.location.search);
+        const coll_id = urlParams.get('Coll_Id');
+        console.log("Coll_Id récupéré =", coll_id);
   
         // Préparer les données à soumettre avec le numéro de pièce mis à jour
         const dataSoumise = {
           ...formDataUpdated,
           lignesEngagement: lignesEngagementFormat,
+          coll_id: coll_id,
           numeroPiece: generatedNumeroPiece, // Mise à jour du numéro de pièce
           demandeur,
           projetNom,
@@ -516,7 +522,7 @@ const FormulaireDemande = () => {
         elevation={3}
         sx={{
           padding: "20px",
-          maxWidth: "70%",
+          maxWidth: "90%",
           margin: "20px auto",
           borderRadius: "10px",
         }}

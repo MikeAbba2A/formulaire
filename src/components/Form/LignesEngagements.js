@@ -433,7 +433,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
           return (
             <Grid container spacing={2} key={index} alignItems="center" sx={{ marginBottom: 1 }}>
               {/* Catégorie */}
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={5}>
                 <TextField
                   select
                   fullWidth
@@ -453,7 +453,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
               </Grid>
 
               {/* Quantité */}
-              <Grid item xs={6} md={1}>
+              <Grid item xs={6} md={2}>
                 <TextField
                   fullWidth
                   type="number"
@@ -466,7 +466,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
               </Grid>
 
               {/* Prix unitaire */}
-              <Grid item xs={6} md={1}>
+              <Grid item xs={6} md={2}>
                 <TextField
                   fullWidth
                   type="number"
@@ -479,7 +479,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
               </Grid>
 
               {/* Total */}
-              <Grid item xs={6} md={1}>
+              <Grid item xs={6} md={2}>
                 <TextField
                   fullWidth
                   value={row.total.toFixed(2)}
@@ -489,7 +489,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
               </Grid>
 
               {/* Actions */}
-              <Grid item xs={12} md={2}>
+              <Grid item xs={12} md={1}>
                 <IconButton
                   color="error"
                   onClick={() => handleRemoveRow(annee, index)}
@@ -505,7 +505,7 @@ const totalGeneral2 = Object.values(lignesEngagements).reduce((acc, lignes) => {
               </Grid>
 
               {/* Affichage des budgets */}
-              <Grid item xs={12} md={3}>
+              <Grid item xs={12} md={3} sx={{ display: 'none'}}>
                 <Box
                   sx={{
                     display: "flex",

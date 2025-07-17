@@ -10,7 +10,7 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
       </Typography>
       <Grid container spacing={2} alignItems="center">
         {/* Date de réception envisagée */}
-        <Grid item xs={12} md={3}>
+        {/*<Grid item xs={12} md={3}>
           <TextField
             fullWidth
             type="date"
@@ -23,10 +23,10 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
             }}
             required 
           />
-        </Grid>
+        </Grid>*/}
 
         {/* Description de la demande */}
-        <Grid item xs={12} md={3}>
+        <Grid item xs={12} md={12}>
           <TextField
             fullWidth
             multiline
@@ -39,7 +39,7 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
         </Grid>
 
         {/* Justification */}
-        <Grid item xs={12} md={3}>
+        {/*<Grid item xs={12} md={3}>
           <TextField
             fullWidth
             multiline
@@ -49,7 +49,7 @@ const InformationLivraison = ({ formData, handleChange, handleFileChange, select
             value={formData.justification}
             onChange={handleChange}
           />
-        </Grid>
+        </Grid>*/}
         <FileUpload handleFileChange={handleFileChange} selectedFiles={selectedFiles} />
       </Grid>
     </Box>
