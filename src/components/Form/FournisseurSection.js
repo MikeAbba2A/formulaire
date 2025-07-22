@@ -8,13 +8,21 @@ const FournisseurSection = ({ formData, handleChange, setFormData }) => {
 
   useEffect(() => {
     // Appel au fichier PHP pour récupérer les fournisseurs
-    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseurs.php")
+    fetch(
+      "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseurs.php"
+    )
       .then((response) => response.json())
       .then((data) => {
+        // on rend unique les fournisseurs par intitule
+        const uniqueFournisseurs = [...new Set(data.map((f) => f.intitule))];
+        setFournisseurs(uniqueFournisseurs);
         setFournisseurs(data);
       })
       .catch((error) => {
-        console.error("Erreur lors de la récupération des fournisseurs :", error);
+        console.error(
+          "Erreur lors de la récupération des fournisseurs :",
+          error
+        );
       });
   }, []);
 
@@ -79,4 +87,3 @@ const FournisseurSection = ({ formData, handleChange, setFormData }) => {
 };
 
 export default FournisseurSection;
-
