@@ -274,7 +274,9 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     let projetMontant = "";
 
     try {
-      const projetResponse = await fetch(`${racineAPI}projet.php`);
+      const projetResponse = await fetch(
+        `${racineAPI}projet.php?type=${typeDemande}`
+      );
       const projetsData = await projetResponse.json();
 
       const projetAssocie = projetsData.find(

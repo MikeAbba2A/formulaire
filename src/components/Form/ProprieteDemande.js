@@ -87,7 +87,9 @@ const ProprieteDemande = ({
       }
 
       try {
-        const response = await fetch(`${racineAPI}projet.php`);
+        const response = await fetch(
+          `${racineAPI}projet.php?type=${typeDemande}`
+        );
         const data = await response.json();
 
         const matching = data.find(
