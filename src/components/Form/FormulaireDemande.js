@@ -21,7 +21,7 @@ import CheckboxSection from "./CheckboxSection";
 import ProprieteDemande from "./ProprieteDemande"; // Import du nouveau composant
 import LignesEngagements from "./LignesEngagements";
 import InformationLivraison from "./InformationLivraison";
-import { newRow } from "../_config/config";
+import { newRow, racineAPI } from "../_config/config";
 
 const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   const [formData, setFormData] = useState({
@@ -55,7 +55,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   const [budgetInitial, setBudgetInitial] = useState("non connu");
   const [budgetRestant, setBudgetRestant] = useState("non connu");
   const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
-  const [filteredBudgetss, setFilteredBudgets] = useState([]); // Budgets filtrés
+  const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
 
   const [budgetSelectionManuelle, setBudgetSelectionManuelle] = useState(false);
 
@@ -84,9 +84,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   }, [formData.lignesTransversales, formData.exerciceBudgetaire]);
 
   useEffect(() => {
-    fetch(
-      "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/recuperer_user_id.php"
-    )
+    fetch(`${racineAPI}recuperer_user_id.php`)
       .then((response) => response.json())
       .then((data) => {
         setNom(data);
@@ -276,7 +274,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     let projetMontant = "";
 
     try {
-      const projetResponse = await fetch("projet.php");
+      const projetResponse = await fetch(`${racineAPI}projet.php`);
       const projetsData = await projetResponse.json();
 
       const projetAssocie = projetsData.find(
@@ -307,7 +305,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     // Envoyer le Res_Id pour le traitement
     if (etat_action === "edit" && resId) {
       try {
-        const resIdResponse = await fetch("traitement_res_id.php", {
+        const resIdResponse = await fetch(`${racineAPI}traitement_res_id.php`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -331,16 +329,19 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
 
     try {
       // Récupération et incrémentation de la séquence
-      const sequenceResponse = await fetch("generate_sequence.php", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          year: new Date().getFullYear(),
-          preview: false,
-        }), // preview:false pour incrémenter
-      });
+      const sequenceResponse = await fetch(
+        `${racineAPI}generate_sequence.php`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            year: new Date().getFullYear(),
+            preview: false,
+          }), // preview:false pour incrémenter
+        }
+      );
 
       const sequenceData = await sequenceResponse.json();
 
@@ -418,16 +419,13 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
 
       // @@@
       // Soumission des données
-      const response = await fetch(
-        "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/process_form.php",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(dataSoumise),
-        }
-      );
+      const response = await fetch(`${racineAPI}process_form.php`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(dataSoumise),
+      });
 
       const data = await response.json();
 
@@ -458,7 +456,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
           );
 
           try {
-            const fileResponse = await fetch("upload_file.php", {
+            const fileResponse = await fetch(`${racineAPI}upload_file.php`, {
               method: "POST",
               body: formDataFile, // Envoi du fichier avec toutes les données
             });
@@ -500,19 +498,16 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
 
   const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
     try {
-      const response = await fetch(
-        "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_sur_da.php",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            annee,
-            code_pole: codePole,
-            actions: budget,
-            categorie,
-          }),
-        }
-      );
+      const response = await fetch(`${racineAPI}affichage_budget_sur_da.php`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          annee,
+          code_pole: codePole,
+          actions: budget,
+          categorie,
+        }),
+      });
 
       const data = await response.json();
 
@@ -530,7 +525,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
     try {
       const response = await fetch(
-        "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php",
+        `${racineAPI}affichage_budget_restant_sur_da.php`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -622,7 +617,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
 
           {/* Section Propriété de la demande */}
           <LignesEngagements
-            filteredBudgetss={filteredBudgetss}
+            filteredBudgetsInitial={filteredBudgets}
             formData={formData}
             handleChange={handleChange}
             selectedBudgetAction={formData.budgetsActions}

@@ -7,6 +7,7 @@ import {
   MenuItem,
   Alert,
 } from "@mui/material";
+import { racineAPI } from "../_config/config";
 
 const ProprieteDemande = ({
   formData,
@@ -55,9 +56,7 @@ const ProprieteDemande = ({
 
   const verifierBudgetPluriannuel = async (budgetCode, annee1, annee2) => {
     try {
-      const response = await fetch(
-        "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php"
-      ); // Ajuste le chemin si besoin
+      const response = await fetch(`${racineAPI}data.php`); // Ajuste le chemin si besoin
       const data = await response.json();
 
       // Filtrer les budgets correspondant à l'année et au code
@@ -88,9 +87,7 @@ const ProprieteDemande = ({
       }
 
       try {
-        const response = await fetch(
-          "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/projet.php"
-        );
+        const response = await fetch(`${racineAPI}projet.php`);
         const data = await response.json();
 
         const matching = data.find(
@@ -134,16 +131,19 @@ const ProprieteDemande = ({
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(
-          "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php"
-        );
+        const response = await fetch(`${racineAPI}data.php`);
         const data = await response.json();
 
-        console.log("✅ Données budgets chargées", data.data ?? data);
-        setDataBudgets(data.data ?? data);
-        setTypeDemande(data.type ?? "lucratif");
+        console.log("✅ Données budgets chargées", data);
 
-        console.log("✅ Type de demande", typeDemande);
+        console.log("✅ Données budgets chargées", data.data);
+        setDataBudgets(data.data);
+        setTypeDemande(data.type);
+
+        console.log(
+          "✅ Type de demande en fonction du coll_id d'appel",
+          data.type
+        );
       } catch (error) {
         console.error(
           "⛔ Erreur lors du chargement initial des budgets :",
@@ -160,9 +160,7 @@ const ProprieteDemande = ({
   useEffect(() => {
     const fetchPoles = async () => {
       try {
-        const response = await fetch(
-          "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/pole.php"
-        );
+        const response = await fetch(`${racineAPI}pole.php`);
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const data = await response.json();
 
@@ -179,11 +177,14 @@ const ProprieteDemande = ({
       if (!formData.services) return; // Vérifie si un pôle est sélectionné
 
       try {
-        const response = await fetch("filtrage_budget_selon_pole2.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selectedPole: formData.services }), // Envoie le pôle sélectionné
-        });
+        const response = await fetch(
+          `${racineAPI}filtrage_budget_selon_pole2.php`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedPole: formData.services }), // Envoie le pôle sélectionné
+          }
+        );
 
         const data = await response.json();
 
@@ -282,7 +283,7 @@ const ProprieteDemande = ({
     const datePart = getCurrentDate();
 
     try {
-      const response = await fetch("generate_sequence.php", {
+      const response = await fetch(`${racineAPI}generate_sequence.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -371,9 +372,7 @@ const ProprieteDemande = ({
 
   const fetchMontantsBudget = async () => {
     try {
-      const response = await fetch(
-        "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/total_budget.php"
-      );
+      const response = await fetch(`${racineAPI}total_budget.php`);
       const data = await response.json();
 
       // ✅ Sécurisation de la récupération du code budget
@@ -441,7 +440,7 @@ const ProprieteDemande = ({
 
         try {
           const response = await fetch(
-            "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseur_lucra_nonLucra.php"
+            `${racineAPI}fournisseur_lucra_nonLucra.php`
           );
           const data = await response.json();
           console.log("✅ Données reçues :", data);

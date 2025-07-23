@@ -9,10 +9,10 @@ import {
 } from "@mui/material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import RemoveCircleOutlineIcon from "@mui/icons-material/RemoveCircleOutline";
-import { newRow } from "../_config/config";
+import { newRow, racineAPI } from "../_config/config";
 
 const LignesEngagements = ({
-  filteredBudgetss,
+  filteredBudgetsInitial,
   formData,
   selectedPole,
   selectedBudget,
@@ -25,7 +25,9 @@ const LignesEngagements = ({
   typeDemande,
 }) => {
   // const [budgets, setBudgets] = useState([]); // Liste des budgets
-  const [filteredBudgets, setFilteredBudgets] = useState(filteredBudgetss); // Budgets filtrés
+  const [filteredBudgets, setFilteredBudgets] = useState(
+    filteredBudgetsInitial
+  ); // Budgets filtrés
   const [categories, setCategories] = useState([]); // Liste des catégories
 
   // Détermination du mode à partir des paramètres URL
@@ -122,9 +124,7 @@ const LignesEngagements = ({
   // }, []);
 
   useEffect(() => {
-    fetch(
-      "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/categories.php"
-    )
+    fetch(`${racineAPI}categories.php`)
       .then((response) => response.json())
       .then((data) => {
         const arrayData = Object.values(data); // ✅ transforme l’objet en tableau
@@ -141,11 +141,14 @@ const LignesEngagements = ({
       if (!formData.services) return;
 
       try {
-        const response = await fetch("filtrage_budget_selon_pole2.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selectedPole: formData.services }),
-        });
+        const response = await fetch(
+          `${racineAPI}filtrage_budget_selon_pole2.php`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedPole: formData.services }),
+          }
+        );
 
         const data = await response.json();
 
@@ -154,12 +157,13 @@ const LignesEngagements = ({
           return;
         }
 
-        setFilteredBudgets(data ? data : "");
+        setFilteredBudgets(data ? data : []);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des budgets filtrés :",
           error
         );
+        setFilteredBudgets([]);
       }
     };
 
@@ -192,11 +196,14 @@ const LignesEngagements = ({
     if (isEditOrDuplicate && formData.services) {
       const fetchFilteredBudgets = async () => {
         try {
-          const response = await fetch("filtrage_budget_selon_pole2.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ selectedPole: formData.services }), // Envoie le pôle sélectionné
-          });
+          const response = await fetch(
+            `${racineAPI}filtrage_budget_selon_pole2.php`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ selectedPole: formData.services }), // Envoie le pôle sélectionné
+            }
+          );
 
           const data = await response.json();
 
@@ -211,6 +218,7 @@ const LignesEngagements = ({
             "⚠️ Erreur lors de la récupération des budgets filtrés :",
             error
           );
+          setFilteredBudgets([]);
         }
       };
       fetchFilteredBudgets();
@@ -592,15 +600,41 @@ const LignesEngagements = ({
                     .toFixed(2)} €`}
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
-            <Typography variant="h6" color="error">
-              {typeDemande === "lucratif"
-                ? "Attention, pour cette demande d'achat, merci de saisir le montant HT"
-                : "Attention, pour cette demande d'achat, merci de saisir le montant TTC."}
-            </Typography>
-          </Box>
         </Box>
       ))}
+
+      {typeDemande && typeDemande.length > 0 && (
+        <Box sx={{ display: "flex", justifyContent: "flex-start", mt: 2 }}>
+          <Grid item xs={12}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                marginY: 4,
+              }}
+            >
+              <Typography
+                color="info"
+                sx={{
+                  fontSize: "1.1rem",
+                  fontWeight: "bold",
+                  backgroundColor: "#e3f2fd",
+                  color: "#0d47a1",
+                  paddingX: 4,
+                  paddingY: 2,
+                  boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                  borderRadius: "8px",
+                }}
+              >
+                {typeDemande === "lucratif"
+                  ? "⚠️ Attention, pour cette demande d'achat, merci de saisir le montant HT"
+                  : "⚠️ Attention, pour cette demande d'achat, merci de saisir le montant TTC"}
+              </Typography>
+            </Box>
+          </Grid>
+        </Box>
+      )}
+
       {formData?.lignesTransversales && (
         <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}>
           <Typography variant="h6">
