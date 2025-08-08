@@ -606,6 +606,18 @@ const ProprieteDemande = ({
                         })}
                       </Typography>
                     </Box>
+                    {/* Budget restant */}
+                    <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+                      <Typography variant="body1">
+                        Budget restant
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        {montantProjet.montant_restant.toLocaleString("fr-FR", {
+                          style: "currency",
+                          currency: "EUR",
+                        })}
+                      </Typography>
+                    </Box>
                   </Box>
                 )}
 
