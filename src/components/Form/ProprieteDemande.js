@@ -1,5 +1,13 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Box, Grid, Typography, TextField, MenuItem, Alert } from "@mui/material";
+import {
+  Box,
+  Grid,
+  Typography,
+  TextField,
+  MenuItem,
+  Alert,
+} from "@mui/material";
+import { racineAPI } from "../_config/config";
 
 const ProprieteDemande = ({
   formData,
@@ -12,20 +20,22 @@ const ProprieteDemande = ({
   budgetSelectionManuelle,
   setBudgetSelectionManuelle,
   categoriePrincipale,
-  setCategoriePrincipale
+  setCategoriePrincipale,
+  typeDemande,
+  setTypeDemande,
 }) => {
   const [budgets, setBudgets] = useState([]);
   const [poles, setPoles] = useState([]);
   const [filteredBudgets, setFilteredBudgets] = useState([]);
   const [fournisseurType, setFournisseurType] = useState(null);
+  const [dataBudgets, setDataBudgets] = useState([]);
   // const [categoriePrincipale, setCategoriePrincipale] = useState(null);
-
-  
 
   // Détermination du mode à partir des paramètres URL
   const urlParams = new URLSearchParams(window.location.search);
   const actionParam = urlParams.get("action");
-  const isEditOrDuplicate = actionParam === "edit" || actionParam === "duplicate";
+  const isEditOrDuplicate =
+    actionParam === "edit" || actionParam === "duplicate";
 
   // Map pour convertir le nom du pôle en code
   const polesMap = {
@@ -46,15 +56,17 @@ const ProprieteDemande = ({
 
   const verifierBudgetPluriannuel = async (budgetCode, annee1, annee2) => {
     try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php"); // Ajuste le chemin si besoin
+      const response = await fetch(`${racineAPI}data.php`); // Ajuste le chemin si besoin
       const data = await response.json();
 
       // Filtrer les budgets correspondant à l'année et au code
       const budgetAnnee1 = data.find(
-        (item) => item.annee === annee1.toString() && item.budget.startsWith(budgetCode)
+        (item) =>
+          item.annee === annee1.toString() && item.budget.startsWith(budgetCode)
       );
       const budgetAnnee2 = data.find(
-        (item) => item.annee === annee2.toString() && item.budget.startsWith(budgetCode)
+        (item) =>
+          item.annee === annee2.toString() && item.budget.startsWith(budgetCode)
       );
 
       return {
@@ -75,7 +87,9 @@ const ProprieteDemande = ({
       }
 
       try {
-        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/projet.php");
+        const response = await fetch(
+          `${racineAPI}projet.php?type=${typeDemande}`
+        );
         const data = await response.json();
 
         const matching = data.find(
@@ -93,8 +107,8 @@ const ProprieteDemande = ({
       }
     };
 
-  fetchMontantProjet();
-}, [formData?.budgetsActions]);
+    fetchMontantProjet();
+  }, [formData?.budgetsActions]);
 
   // --- Pré-remplissage du formulaire via le paramètre "json" dans l'URL ---
   // useEffect(() => {
@@ -102,7 +116,6 @@ const ProprieteDemande = ({
   //   if (json) {
   //     try {
   //       const parsed = JSON.parse(decodeURIComponent(json));
-        
 
   //       setFormData((prev) => {
   //         // Vérifier si les données sont identiques pour éviter une mise à jour inutile
@@ -117,36 +130,42 @@ const ProprieteDemande = ({
   //   }
   // }, [urlParams]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch(`${racineAPI}data.php`);
+        const data = await response.json();
 
-const [dataBudgets, setDataBudgets] = useState([]);
+        console.log("✅ Données budgets chargées", data);
 
-useEffect(() => {
-  const fetchData = async () => {
-    try {
-      const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/data.php");
-      const data = await response.json();
-      console.log("✅ Données budgets chargées", data);
-      setDataBudgets(data);
-    } catch (error) {
-      console.error("⛔ Erreur lors du chargement initial des budgets :", error);
-    }
-  };
+        console.log("✅ Données budgets chargées", data.data);
+        setDataBudgets(data.data);
+        setTypeDemande(data.type);
 
-  fetchData();
-}, []);
+        console.log(
+          "✅ Type de demande en fonction du coll_id d'appel",
+          data.type
+        );
+      } catch (error) {
+        console.error(
+          "⛔ Erreur lors du chargement initial des budgets :",
+          error
+        );
+      }
+    };
 
+    fetchData();
+  }, []);
 
   // --- Récupération des pôles depuis pole.php ---
 
   useEffect(() => {
     const fetchPoles = async () => {
       try {
-        const response = await fetch(
-          "https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/pole.php"
-        );
+        const response = await fetch(`${racineAPI}pole.php`);
         if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
         const data = await response.json();
-        
+
         setPoles(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des pôles :", error);
@@ -155,34 +174,38 @@ useEffect(() => {
     fetchPoles();
   }, []);
 
-
   useEffect(() => {
     const fetchFilteredBudgets = async () => {
       if (!formData.services) return; // Vérifie si un pôle est sélectionné
-  
+
       try {
-        const response = await fetch("filtrage_budget_selon_pole2.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ selectedPole: formData.services }) // Envoie le pôle sélectionné
-        });
-  
+        const response = await fetch(
+          `${racineAPI}filtrage_budget_selon_pole2.php`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ selectedPole: formData.services }), // Envoie le pôle sélectionné
+          }
+        );
+
         const data = await response.json();
-  
+
         if (data.status === "error") {
           console.error("Erreur :", data.message);
           setFilteredBudgets([]);
           return;
         }
-  
-        
+
         setFilteredBudgets(data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des budgets filtrés :", error);
+        console.error(
+          "Erreur lors de la récupération des budgets filtrés :",
+          error
+        );
         setFilteredBudgets([]);
       }
     };
-  
+
     fetchFilteredBudgets();
   }, [formData.services]);
 
@@ -221,10 +244,14 @@ useEffect(() => {
           const data = dataBudgets;
 
           const budgetAnnee1 = data.find(
-            (item) => item.annee === annee1.toString() && item.budget.startsWith(selectedBudgetCode)
+            (item) =>
+              item.annee === annee1.toString() &&
+              item.budget.startsWith(selectedBudgetCode)
           );
           const budgetAnnee2 = data.find(
-            (item) => item.annee === annee2.toString() && item.budget.startsWith(selectedBudgetCode)
+            (item) =>
+              item.annee === annee2.toString() &&
+              item.budget.startsWith(selectedBudgetCode)
           );
           console.log("annee 1 =>", budgetAnnee1);
           console.log("annee 2 =>", budgetAnnee2);
@@ -232,15 +259,14 @@ useEffect(() => {
           if (!budgetAnnee1 || !budgetAnnee2) {
             alert(
               `❌ Le budget "${selectedBudgetCode}" n'est pas disponible pour :\n` +
-              `${!budgetAnnee1 ? `- l'année ${annee1}\n` : ''}` +
-              `${!budgetAnnee2 ? `- l'année ${annee2}` : ''}`
+                `${!budgetAnnee1 ? `- l'année ${annee1}\n` : ""}` +
+                `${!budgetAnnee2 ? `- l'année ${annee2}` : ""}`
             );
             setValidationPossible(false); // 🔒 bloquer la validation
           } else {
             setValidationPossible(true); // ✅ OK
           }
         } catch (error) {
-          
           console.error("⛔ Erreur lors du chargement des budgets :", error);
           alert("Erreur lors de la vérification des budgets pluriannuels.");
           setValidationPossible(false);
@@ -252,8 +278,6 @@ useEffect(() => {
     }
   };
 
-
-
   // --- Gestion du changement de pôle ---
   const handlePoleChange = async (e) => {
     const selectedPole = e.target.value;
@@ -261,10 +285,13 @@ useEffect(() => {
     const datePart = getCurrentDate();
 
     try {
-      const response = await fetch("generate_sequence.php", {
+      const response = await fetch(`${racineAPI}generate_sequence.php`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ year: new Date().getFullYear(), preview: false }),
+        body: JSON.stringify({
+          year: new Date().getFullYear(),
+          preview: false,
+        }),
       });
       if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
       const data = await response.json();
@@ -277,7 +304,10 @@ useEffect(() => {
           typeDemande: "achat",
         }));
       } else {
-        console.error("Erreur lors de la récupération de la séquence :", data.error);
+        console.error(
+          "Erreur lors de la récupération de la séquence :",
+          data.error
+        );
       }
     } catch (error) {
       console.error("Erreur lors de l'appel à generate_sequence.php :", error);
@@ -301,7 +331,12 @@ useEffect(() => {
       }
     };
     updateBudgetInitial();
-  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions, fetchBudgetInitial]);
+  }, [
+    formData.exerciceBudgetaire,
+    formData.services,
+    formData.budgetsActions,
+    fetchBudgetInitial,
+  ]);
 
   useEffect(() => {
     const updateBudgetRestant = async () => {
@@ -319,356 +354,387 @@ useEffect(() => {
       }
     };
     updateBudgetRestant();
-  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions, fetchBudgetRestant]);
+  }, [
+    formData.exerciceBudgetaire,
+    formData.services,
+    formData.budgetsActions,
+    fetchBudgetRestant,
+  ]);
 
   useEffect(() => {
-    const allReady = 
+    const allReady =
       formData.exerciceBudgetaire &&
       formData.services &&
       formData.budgetsActions;
 
     if (allReady) {
-     
       fetchMontantsBudget();
     }
-  }, [
-    formData.exerciceBudgetaire,
-    formData.services,
-    formData.budgetsActions
-  ]);
+  }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
   const fetchMontantsBudget = async () => {
-  try {
-    const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/total_budget.php");
-    const data = await response.json();
+    try {
+      const response = await fetch(`${racineAPI}total_budget.php`);
+      const data = await response.json();
 
-    // ✅ Sécurisation de la récupération du code budget
-    const rawBudget = formData.budgetsActions || "";
-    const budgetCode = rawBudget.includes(" - ") ? rawBudget.split(" - ")[0] : rawBudget;
+      // ✅ Sécurisation de la récupération du code budget
+      const rawBudget = formData.budgetsActions || "";
+      const budgetCode = rawBudget.includes(" - ")
+        ? rawBudget.split(" - ")[0]
+        : rawBudget;
 
-    if (!budgetCode) {
-      console.warn("❌ Aucun code budget fourni.");
-      return;
-    }
-
-    const budget = data.find(item => item.actions === budgetCode);
-
-    if (budget) {
-      
-      setMontantsBudget({
-        montant_initial: budget.montant_initial,
-        montant_restant: budget.montant_restant,
-      });
-    } else {
-      console.warn("❌ Aucun budget trouvé pour :", budgetCode);
-      setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
-    }
-  } catch (error) {
-    console.error("Erreur lors de la récupération des montants du budget :", error);
-  }
-};
-
-
-useEffect(() => {
-  console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
-}, [categoriePrincipale]);
-
-  useEffect(() => {
-  if (categoriePrincipale === null) {
-    console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
-    return;
-  }
-
-  console.log("🚀 useEffect triggered");
-
-  const fetchFournisseurType = async () => {
-    console.log("📊 Déclenchement useEffect avec : ", {
-      exerciceBudgetaire: formData.exerciceBudgetaire,
-      services: formData.services,
-      budgetsActions: formData.budgetsActions,
-      categoriePrincipale,
-    });
-
-    if (
-      formData.exerciceBudgetaire &&
-      formData.services &&
-      formData.budgetsActions &&
-      categoriePrincipale
-    ) {
-      console.log("🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php");
-
-      try {
-        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseur_lucra_nonLucra.php");
-        const data = await response.json();
-        console.log("✅ Données reçues :", data);
-
-        const budgetCode = formData.budgetsActions.split(" - ")[0];
-        const matching = data.find(
-          item =>
-            item.annee === formData.exerciceBudgetaire.toString() &&
-            item.pole === formData.services &&
-            item.budget.startsWith(budgetCode) &&
-            item.categorie === categoriePrincipale
-        );
-
-        if (matching) {
-          console.log("🎯 Type fournisseur trouvé :", matching.type);
-          setFournisseurType(matching.type);
-        } else {
-          console.warn("❌ Aucun fournisseur correspondant trouvé.");
-          setFournisseurType(null);
-        }
-      } catch (error) {
-        console.error("⛔ Erreur fetch :", error);
+      if (!budgetCode) {
+        console.warn("❌ Aucun code budget fourni.");
+        return;
       }
-    } else {
-      console.log("⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur.");
+
+      const budget = data.find((item) => item.actions === budgetCode);
+
+      if (budget) {
+        setMontantsBudget({
+          montant_initial: budget.montant_initial,
+          montant_restant: budget.montant_restant,
+        });
+      } else {
+        console.warn("❌ Aucun budget trouvé pour :", budgetCode);
+        setMontantsBudget({
+          montant_initial: "non connu",
+          montant_restant: "non connu",
+        });
+      }
+    } catch (error) {
+      console.error(
+        "Erreur lors de la récupération des montants du budget :",
+        error
+      );
     }
   };
 
-  fetchFournisseurType();
-}, [
-  formData.exerciceBudgetaire,
-  formData.services,
-  formData.budgetsActions,
-  categoriePrincipale
-]);
+  useEffect(() => {
+    console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
+  }, [categoriePrincipale]);
 
+  useEffect(() => {
+    if (categoriePrincipale === null) {
+      console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
+      return;
+    }
 
+    console.log("🚀 useEffect triggered");
 
+    const fetchFournisseurType = async () => {
+      console.log("📊 Déclenchement useEffect avec : ", {
+        exerciceBudgetaire: formData.exerciceBudgetaire,
+        services: formData.services,
+        budgetsActions: formData.budgetsActions,
+        categoriePrincipale,
+      });
 
-  
+      if (
+        formData.exerciceBudgetaire &&
+        formData.services &&
+        formData.budgetsActions &&
+        categoriePrincipale
+      ) {
+        console.log(
+          "🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php"
+        );
+
+        try {
+          const response = await fetch(
+            `${racineAPI}fournisseur_lucra_nonLucra.php`
+          );
+          const data = await response.json();
+          console.log("✅ Données reçues :", data);
+
+          const budgetCode = formData.budgetsActions.split(" - ")[0];
+          const matching = data.find(
+            (item) =>
+              item.annee === formData.exerciceBudgetaire.toString() &&
+              item.pole === formData.services &&
+              item.budget.startsWith(budgetCode) &&
+              item.categorie === categoriePrincipale
+          );
+
+          if (matching) {
+            console.log("🎯 Type fournisseur trouvé :", matching.type);
+            setFournisseurType(matching.type);
+          } else {
+            console.warn("❌ Aucun fournisseur correspondant trouvé.");
+            setFournisseurType(null);
+          }
+        } catch (error) {
+          console.error("⛔ Erreur fetch :", error);
+        }
+      } else {
+        console.log(
+          "⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur."
+        );
+      }
+    };
+
+    fetchFournisseurType();
+  }, [
+    formData.exerciceBudgetaire,
+    formData.services,
+    formData.budgetsActions,
+    categoriePrincipale,
+  ]);
 
   return (
-  <Box
-    sx={{
-      marginTop: 3,
-      padding: 2,
-      display: "flex",
-      justifyContent: "center",
-    }}
-  >
-    <Grid container spacing={4} justifyContent="center">
-      <Grid item xs={12}>
-        <Typography variant="h6" gutterBottom>
-          Propriété de la demande
-        </Typography>
+    <Box
+      sx={{
+        marginTop: 3,
+        padding: 2,
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <Grid container spacing={4} justifyContent="center">
+        <Grid item xs={12}>
+          <Typography variant="h6" gutterBottom>
+            Propriété de la demande
+          </Typography>
 
-        <Grid container spacing={2}>
-          {/* ➤ Colonne de gauche : champs de formulaire */}
-          <Grid item xs={12} md={6}>
-            {/* Type de demande */}
-            <TextField
-              select
-              fullWidth
-              label="Type de la demande"
-              name="typeDemande"
-              value={formData.typeDemande || ""}
-              onChange={handleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              <MenuItem value="achat">Demande d'achat</MenuItem>
-            </TextField>
-
-            {/* Exercice budgétaire */}
-            <TextField
-              select
-              fullWidth
-              label="Exercice budgétaire"
-              name="exerciceBudgetaire"
-              value={formData.exerciceBudgetaire || ""}
-              onChange={handleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {[-1, 0, 1].map((offset) => {
-                const year = new Date().getFullYear() + offset;
-                return (
-                  <MenuItem key={year} value={year}>
-                    {year}
-                  </MenuItem>
-                );
-              })}
-            </TextField>
-
-            {/* Pôle */}
-            <TextField
-              select
-              fullWidth
-              label="Pôle"
-              name="services"
-              value={formData.services || ""}
-              onChange={handlePoleChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {poles.map((pole, index) => (
-                <MenuItem key={index} value={pole}>
-                  {pole}
-                </MenuItem>
-              ))}
-            </TextField>
-
-            {/* Budgets / Actions */}
-            <TextField
-              select
-              fullWidth
-              label="Budgets / Actions"
-              name="budgetsActions"
-              value={formData.budgetsActions || ""}
-              onChange={handleBudgetChange}
-              required
-              sx={{ marginBottom: 2 }}
-            >
-              {filteredBudgets.map((budget, index) => (
-                <MenuItem key={index} value={budget.split(" - ")[0]}>
-                  {budget}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-
-          {(montantProjet || (formData.exerciceBudgetaire && formData.services && budgetSelectionManuelle)) && (
+          <Grid container spacing={2}>
+            {/* ➤ Colonne de gauche : champs de formulaire */}
             <Grid item xs={12} md={6}>
-              {/* Bloc projet */}
-              {montantProjet && (
+              {/* Type de demande */}
+              <TextField
+                select
+                fullWidth
+                label="Type de la demande"
+                name="typeDemande"
+                value={formData.typeDemande || ""}
+                onChange={handleChange}
+                required
+                sx={{ marginBottom: 2 }}
+              >
+                <MenuItem value="achat">Demande d'achat</MenuItem>
+              </TextField>
+
+              {/* Exercice budgétaire */}
+              <TextField
+                select
+                fullWidth
+                label="Exercice budgétaire"
+                name="exerciceBudgetaire"
+                value={formData.exerciceBudgetaire || ""}
+                onChange={handleChange}
+                required
+                sx={{ marginBottom: 2 }}
+              >
+                {[-1, 0, 1].map((offset) => {
+                  const year = new Date().getFullYear() + offset;
+                  return (
+                    <MenuItem key={year} value={year}>
+                      {year}
+                    </MenuItem>
+                  );
+                })}
+              </TextField>
+
+              {/* Pôle */}
+              <TextField
+                select
+                fullWidth
+                label="Pôle"
+                name="services"
+                value={formData.services || ""}
+                onChange={handlePoleChange}
+                required
+                sx={{ marginBottom: 2 }}
+              >
+                {poles.map((pole, index) => (
+                  <MenuItem key={index} value={pole}>
+                    {pole}
+                  </MenuItem>
+                ))}
+              </TextField>
+
+              {/* Budgets / Actions */}
+              <TextField
+                select
+                fullWidth
+                label="Budgets / Actions"
+                name="budgetsActions"
+                value={formData.budgetsActions || ""}
+                onChange={handleBudgetChange}
+                required
+                sx={{ marginBottom: 2 }}
+              >
+                {filteredBudgets.map((budget, index) => (
+                  <MenuItem key={index} value={budget.split(" - ")[0]}>
+                    {budget}
+                  </MenuItem>
+                ))}
+              </TextField>
+            </Grid>
+
+            {(montantProjet ||
+              (formData.exerciceBudgetaire &&
+                formData.services &&
+                budgetSelectionManuelle)) && (
+              <Grid item xs={12} md={6}>
+                {/* Bloc projet */}
+                {montantProjet && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      backgroundColor: "#d1ecf1",
+                      padding: 2,
+                      borderRadius: "8px",
+                      marginBottom: 2,
+                      border: "1px solid #bee5eb",
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                      Projet : {montantProjet.projet}
+                    </Typography>
+                    <Box
+                      sx={{ display: "flex", justifyContent: "space-between" }}
+                    >
+                      <Typography variant="body1">
+                        Montant total du projet
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        {montantProjet.montant.toLocaleString("fr-FR", {
+                          style: "currency",
+                          currency: "EUR",
+                        })}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+
+                {/* Bloc budget global */}
+                {montantsBudget && (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      backgroundColor: "#d1ecf1",
+                      padding: 2,
+                      borderRadius: "8px",
+                      marginBottom: 2,
+                      border: "1px solid #bee5eb",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant="body1">Budget global</Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        {/* {montantsBudget.montant_initial || "non connu"} */}
+                        {montantsBudget.montant_initial
+                          ? montantsBudget.montant_initial.toLocaleString(
+                              "fr-FR",
+                              {
+                                style: "currency",
+                                currency: "EUR",
+                              }
+                            )
+                          : "non connu"}
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        gap: 2,
+                      }}
+                    >
+                      <Typography variant="body1">
+                        Budget global restant
+                      </Typography>
+                      <Typography variant="body1" color="textSecondary">
+                        {/* {montantsBudget.montant_restant || "non connu"} */}
+                        {montantsBudget.montant_restant
+                          ? montantsBudget.montant_restant.toLocaleString(
+                              "fr-FR",
+                              {
+                                style: "currency",
+                                currency: "EUR",
+                              }
+                            )
+                          : "non connu"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              </Grid>
+            )}
+
+            {fournisseurType === "1" && (
+              <Grid item xs={12}>
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    backgroundColor: "#d1ecf1",
-                    padding: 2,
-                    borderRadius: "8px",
-                    marginBottom: 2,
-                    border: "1px solid #bee5eb"
+                    justifyContent: "center",
+                    marginY: 4,
                   }}
                 >
-                  <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                    Projet : {montantProjet.projet}
-                  </Typography>
-                  <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-                    <Typography variant="body1">Montant total du projet</Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      {montantProjet.montant.toLocaleString("fr-FR", {
-                        style: "currency",
-                        currency: "EUR"
-                      })}
-                    </Typography>
-                  </Box>
+                  <Alert
+                    severity="info"
+                    sx={{
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      backgroundColor: "#e3f2fd",
+                      color: "#0d47a1",
+                      paddingX: 4,
+                      paddingY: 2,
+                      boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    ⚠️ Attention, pour cette demande d'achat, merci de saisir le
+                    montant <strong>HT</strong>
+                  </Alert>
                 </Box>
-              )}
+              </Grid>
+            )}
 
-              {/* Bloc budget global */}
-              {montantsBudget && (
+            {fournisseurType === "2" && (
+              <Grid item xs={12}>
                 <Box
                   sx={{
                     display: "flex",
-                    flexDirection: "column",
-                    gap: 2,
-                    backgroundColor: "#d1ecf1",
-                    padding: 2,
-                    borderRadius: "8px",
-                    marginBottom: 2,
-                    border: "1px solid #bee5eb"
+                    justifyContent: "center",
+                    marginY: 4,
                   }}
                 >
-                  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                    <Typography variant="body1">Budget global</Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      {/* {montantsBudget.montant_initial || "non connu"} */}
-                      {montantsBudget.montant_initial
-                        ? montantsBudget.montant_initial.toLocaleString("fr-FR", {
-                            style: "currency",
-                            currency: "EUR"
-                          })
-                        : "non connu"}
-                    </Typography>
-                  </Box>
-
-                  <Box sx={{ display: "flex", justifyContent: "space-between", gap: 2 }}>
-                    <Typography variant="body1">Budget global restant</Typography>
-                    <Typography variant="body1" color="textSecondary">
-                      {/* {montantsBudget.montant_restant || "non connu"} */}
-                      {montantsBudget.montant_restant
-                        ? montantsBudget.montant_restant.toLocaleString("fr-FR", {
-                            style: "currency",
-                            currency: "EUR"
-                          })
-                        : "non connu"}
-                    </Typography>
-                  </Box>
+                  <Alert
+                    severity="success"
+                    sx={{
+                      fontSize: "1.1rem",
+                      fontWeight: "bold",
+                      backgroundColor: "#e8f5e9",
+                      color: "#1b5e20",
+                      paddingX: 4,
+                      paddingY: 2,
+                      boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    ⚠️ Attention, pour cette demande d'achat, merci de saisir le
+                    montant <strong>TTC</strong>.
+                  </Alert>
                 </Box>
-              )}
-            </Grid>
-          )}
-
-
-
-          {fournisseurType === "1" && (
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginY: 4,
-                }}
-              >
-                <Alert
-                  severity="info"
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: "bold",
-                    backgroundColor: "#e3f2fd",
-                    color: "#0d47a1",
-                    paddingX: 4,
-                    paddingY: 2,
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  ⚠️ Attention, pour cette demande d'achat, merci de saisir le montant <strong>HT</strong>
-                </Alert>
-              </Box>
-            </Grid>
-          )}
-
-          {fournisseurType === "2" && (
-            <Grid item xs={12}>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginY: 4,
-                }}
-              >
-                <Alert
-                  severity="success"
-                  sx={{
-                    fontSize: "1.1rem",
-                    fontWeight: "bold",
-                    backgroundColor: "#e8f5e9",
-                    color: "#1b5e20",
-                    paddingX: 4,
-                    paddingY: 2,
-                    boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
-                    borderRadius: "8px",
-                  }}
-                >
-                  ⚠️ Attention, pour cette demande d'achat, merci de saisir le montant <strong>TTC</strong>.
-                </Alert>
-              </Box>
-            </Grid>
-          )}
-
+              </Grid>
+            )}
+          </Grid>
         </Grid>
       </Grid>
-    </Grid>
-  </Box>
-);
-
+    </Box>
+  );
 };
 
 export default ProprieteDemande;
-
