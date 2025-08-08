@@ -495,22 +495,44 @@ const FormulaireDemande = () => {
       }
     };
 
-    const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
+    // const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
       
-      try {
-        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
-        });
+    //   try {
+    //     const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/affichage_budget_restant_sur_da.php", {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
+    //     });
     
-        const data2 = await response.json();
-        return data2.montant_restant || "non connu";
-      } catch (error) {
+    //     const data2 = await response.json();
+    //     return data2.montant_restant || "non connu";
+    //   } catch (error) {
 
-        return "non connu";
-      }
+    //     return "non connu";
+    //   }
+    // };
+
+  async function fetchBudgetRestant(annee, codePole, actions, categorie) {
+    if (!annee || !codePole || !actions || !categorie) {
+      return "non connu"; // évite un fetch inutile
+    }
+
+    const payload = {
+      annee: String(annee),
+      code_pole: codePole,
+      actions: actions.includes(" - ") ? actions.split(" - ")[0] : actions, // sécurise le code
+      categorie
     };
+
+    const res = await fetch("affichage_budget_restant_sur_da.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    return data?.montant_restant ?? "non connu";
+  }
+
 
   return (
     <>
