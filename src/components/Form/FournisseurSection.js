@@ -2,19 +2,26 @@
 
 import React, { useState, useEffect } from "react";
 import { Grid, TextField, Autocomplete } from "@mui/material";
+import { racineAPI } from "../_config/config";
 
 const FournisseurSection = ({ formData, handleChange, setFormData }) => {
   const [fournisseurs, setFournisseurs] = useState([]);
 
   useEffect(() => {
     // Appel au fichier PHP pour récupérer les fournisseurs
-    fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/fournisseurs.php")
+    fetch(`${racineAPI}fournisseurs.php`)
       .then((response) => response.json())
       .then((data) => {
+        // on rend unique les fournisseurs par intitule
+        const uniqueFournisseurs = [...new Set(data.map((f) => f.intitule))];
+        setFournisseurs(uniqueFournisseurs);
         setFournisseurs(data);
       })
       .catch((error) => {
-        console.error("Erreur lors de la récupération des fournisseurs :", error);
+        console.error(
+          "Erreur lors de la récupération des fournisseurs :",
+          error
+        );
       });
   }, []);
 
@@ -79,4 +86,3 @@ const FournisseurSection = ({ formData, handleChange, setFormData }) => {
 };
 
 export default FournisseurSection;
-
