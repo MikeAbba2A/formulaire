@@ -257,12 +257,12 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     }
 
     // Vérifier si le montant total est 0.00
-    if (totalGeneral === 0) {
-      alert(
-        "Le montant de la demande d'achat est de 0.00€, validation non permise."
-      );
-      return; // Bloque la validation du formulaire
-    }
+    // if (totalGeneral === 0) {
+    //   alert(
+    //     "Le montant de la demande d'achat est de 0.00€, validation non permise."
+    //   );
+    //   return; // Bloque la validation du formulaire
+    // }
 
     const montantRestantNum = parseFloat(montantsBudget.montant_restant);
     // if (!isNaN(montantRestantNum) && totalGeneral > montantRestantNum) {
