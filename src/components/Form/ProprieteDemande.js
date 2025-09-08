@@ -414,72 +414,72 @@ const ProprieteDemande = ({
     console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
   }, [categoriePrincipale]);
 
-  useEffect(() => {
-    if (categoriePrincipale === null) {
-      console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
-      return;
-    }
+  // useEffect(() => {
+  //   if (categoriePrincipale === null) {
+  //     console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
+  //     return;
+  //   }
 
-    console.log("🚀 useEffect triggered");
+  //   console.log("🚀 useEffect triggered");
 
-    const fetchFournisseurType = async () => {
-      console.log("📊 Déclenchement useEffect avec : ", {
-        exerciceBudgetaire: formData.exerciceBudgetaire,
-        services: formData.services,
-        budgetsActions: formData.budgetsActions,
-        categoriePrincipale,
-      });
+  //   const fetchFournisseurType = async () => {
+  //     console.log("📊 Déclenchement useEffect avec : ", {
+  //       exerciceBudgetaire: formData.exerciceBudgetaire,
+  //       services: formData.services,
+  //       budgetsActions: formData.budgetsActions,
+  //       categoriePrincipale,
+  //     });
 
-      if (
-        formData.exerciceBudgetaire &&
-        formData.services &&
-        formData.budgetsActions &&
-        categoriePrincipale
-      ) {
-        console.log(
-          "🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php"
-        );
+  //     if (
+  //       formData.exerciceBudgetaire &&
+  //       formData.services &&
+  //       formData.budgetsActions &&
+  //       categoriePrincipale
+  //     ) {
+  //       console.log(
+  //         "🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php"
+  //       );
 
-        try {
-          const response = await fetch(
-            `${racineAPI}fournisseur_lucra_nonLucra.php`
-          );
-          const data = await response.json();
-          console.log("✅ Données reçues :", data);
+  //       try {
+  //         const response = await fetch(
+  //           `${racineAPI}fournisseur_lucra_nonLucra.php`
+  //         );
+  //         const data = await response.json();
+  //         console.log("✅ Données reçues :", data);
 
-          const budgetCode = formData.budgetsActions.split(" - ")[0];
-          const matching = data.find(
-            (item) =>
-              item.annee === formData.exerciceBudgetaire.toString() &&
-              item.pole === formData.services &&
-              item.budget.startsWith(budgetCode) &&
-              item.categorie === categoriePrincipale
-          );
+  //         const budgetCode = formData.budgetsActions.split(" - ")[0];
+  //         const matching = data.find(
+  //           (item) =>
+  //             item.annee === formData.exerciceBudgetaire.toString() &&
+  //             item.pole === formData.services &&
+  //             item.budget.startsWith(budgetCode) &&
+  //             item.categorie === categoriePrincipale
+  //         );
 
-          if (matching) {
-            console.log("🎯 Type fournisseur trouvé :", matching.type);
-            setFournisseurType(matching.type);
-          } else {
-            console.warn("❌ Aucun fournisseur correspondant trouvé.");
-            setFournisseurType(null);
-          }
-        } catch (error) {
-          console.error("⛔ Erreur fetch :", error);
-        }
-      } else {
-        console.log(
-          "⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur."
-        );
-      }
-    };
+  //         if (matching) {
+  //           console.log("🎯 Type fournisseur trouvé :", matching.type);
+  //           setFournisseurType(matching.type);
+  //         } else {
+  //           console.warn("❌ Aucun fournisseur correspondant trouvé.");
+  //           setFournisseurType(null);
+  //         }
+  //       } catch (error) {
+  //         console.error("⛔ Erreur fetch :", error);
+  //       }
+  //     } else {
+  //       console.log(
+  //         "⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur."
+  //       );
+  //     }
+  //   };
 
-    fetchFournisseurType();
-  }, [
-    formData.exerciceBudgetaire,
-    formData.services,
-    formData.budgetsActions,
-    categoriePrincipale,
-  ]);
+  //   fetchFournisseurType();
+  // }, [
+  //   formData.exerciceBudgetaire,
+  //   formData.services,
+  //   formData.budgetsActions,
+  //   categoriePrincipale,
+  // ]);
 
   return (
     <Box
