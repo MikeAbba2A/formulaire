@@ -498,7 +498,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     }
   };
 
-  const fetchBudgetInitial = async (annee, codePole, budget, categorie) => {
+  const fetchBudgetInitial = async (annee, codePole, budget) => {
     try {
       const response = await fetch(`${racineAPI}affichage_budget_sur_da.php`, {
         method: "POST",
@@ -506,12 +506,13 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
         body: JSON.stringify({
           annee,
           code_pole: codePole,
-          actions: budget,
-          categorie,
+          actions: budget
         }),
       });
 
       const data = await response.json();
+
+      console.log(data.montant_initial);
 
       return data.montant_initial || "non connu";
     } catch (error) {

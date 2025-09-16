@@ -372,43 +372,118 @@ const ProprieteDemande = ({
     }
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
-  const fetchMontantsBudget = async () => {
-    try {
-      const response = await fetch(`${racineAPI}total_budget.php`);
-      const data = await response.json();
+// const fetchMontantsBudget = async () => {
+//   try {
+//     const response = await fetch(`${racineAPI}total_budget.php`);
+//     const data = await response.json();
 
-      // ✅ Sécurisation de la récupération du code budget
-      const rawBudget = formData.budgetsActions || "";
-      const budgetCode = rawBudget.includes(" - ")
-        ? rawBudget.split(" - ")[0]
-        : rawBudget;
+//     /**
+//      * @typedef {Object} BudgetItem
+//      * @property {(string|number)=} annee
+//      * @property {string=} actions
+//      * @property {(number|string)=} montant_initial
+//      * @property {(number|string)=} montant_restant
+//      */
 
-      if (!budgetCode) {
-        console.warn("❌ Aucun code budget fourni.");
-        return;
-      }
+//     /** @type {BudgetItem[]} */
+//     const items = Array.isArray(data) ? data : Object.values(data || {});
 
-      const budget = data.find((item) => item.actions === budgetCode);
+//     // ✅ Récupération/normalisation du code budget (avant " - ")
+//     const rawBudget = formData.budgetsActions || "";
+//     const budgetCode = rawBudget.includes(" - ")
+//       ? rawBudget.split(" - ")[0].trim()
+//       : rawBudget.trim();
 
-      if (budget) {
-        setMontantsBudget({
-          montant_initial: budget.montant_initial,
-          montant_restant: budget.montant_restant,
-        });
-      } else {
-        console.warn("❌ Aucun budget trouvé pour :", budgetCode);
-        setMontantsBudget({
-          montant_initial: "non connu",
-          montant_restant: "non connu",
-        });
-      }
-    } catch (error) {
-      console.error(
-        "Erreur lors de la récupération des montants du budget :",
-        error
-      );
+//     if (!budgetCode) {
+//       console.warn("❌ Aucun code budget fourni.");
+//       return;
+//     }
+
+//     // ✅ Extraction d'une année sur 4 chiffres dans exerciceBudgetaire
+//     /** @param {*} val @returns {string} */
+//     const extractYear = (val) => {
+//       const m = String(val ?? "").match(/\b(20\d{2})\b/);
+//       return m ? m[1] : "";
+//     };
+//     const selectedYear = extractYear(formData.exerciceBudgetaire);
+
+//     // 🎯 Match strict: actions === code ET annee === selectedYear
+//     console.log("📝 Données reçues de total_budget.php :", items);
+// console.log("🔍 Recherche avec :", { budgetCode, selectedYear });
+
+//     let budget =
+//       items.find(
+//         (it) =>
+//           String((it && it.actions) || "").trim() === budgetCode &&
+//           String(it && it.annee) === selectedYear
+//       ) ||
+//       // 🔁 Fallback: si l'année n'est pas trouvée, on prend la plus récente pour ce code
+//       items
+//         .filter((it) => String((it && it.actions) || "").trim() === budgetCode)
+//         .sort((a, b) => Number((b && b.annee) || 0) - Number((a && a.annee) || 0))[0];
+
+//     const isDefined = (v) => v !== undefined && v !== null;
+
+//     if (budget) {
+//       setMontantsBudget({
+//         montant_initial: isDefined(budget.montant_initial) ? budget.montant_initial : "non connu",
+//         montant_restant: isDefined(budget.montant_restant) ? budget.montant_restant : "non connu",
+//       });
+//     } else {
+//       console.warn(
+//         "❌ Aucun budget trouvé pour :", budgetCode, "année :", selectedYear || "(non précisée)"
+//       );
+//       setMontantsBudget({
+//         montant_initial: "non connu",
+//         montant_restant: "non connu",
+//       });
+//     }
+//   } catch (error) {
+//     console.error("Erreur lors de la récupération des montants du budget :", error);
+//   }
+// };
+
+const fetchMontantsBudget = async () => {
+  try {
+    const rawBudget = formData.budgetsActions || "";
+    const budgetCode = rawBudget.includes(" - ")
+      ? rawBudget.split(" - ")[0].trim()
+      : rawBudget.trim();
+
+    const payload = {
+      annee: formData.exerciceBudgetaire,
+      code_pole: formData.services,
+      actions: budgetCode,
+    };
+
+    const response = await fetch(`${racineAPI}total_budget.php`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+    console.log("📝 Données reçues de total_budget.php :", data);
+
+    if (!data || data.error) {
+      console.warn("❌ Aucun budget trouvé pour :", budgetCode, "année :", payload.annee);
+      setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
+      return;
     }
-  };
+
+    // le reste de ta logique inchangé
+    setMontantsBudget({
+      montant_initial: data.montant_initial ?? "non connu",
+      montant_restant: data.montant_restant ?? "non connu",
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des montants du budget :", error);
+  }
+};
+
+
 
   useEffect(() => {
     console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
