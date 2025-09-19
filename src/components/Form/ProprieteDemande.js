@@ -282,6 +282,7 @@ const ProprieteDemande = ({
   // --- Gestion du changement de pôle ---
   const handlePoleChange = async (e) => {
     const selectedPole = e.target.value;
+    console.log(selectedPole);
     const poleNumber = (polesMap[selectedPole] || "0").toString();
     const datePart = getCurrentDate();
 
@@ -297,13 +298,16 @@ const ProprieteDemande = ({
       if (!response.ok) throw new Error(`Erreur HTTP: ${response.status}`);
       const data = await response.json();
       if (data.sequence) {
+        console.log(poleNumber);
         const generatedNumeroPiece = `${poleNumber}${datePart}${data.sequence}`;
+        console.log(generatedNumeroPiece);
         setFormData((prev) => ({
           ...prev,
           services: selectedPole,
           numeroPiece: generatedNumeroPiece,
           typeDemande: "achat",
         }));
+      
       } else {
         console.error(
           "Erreur lors de la récupération de la séquence :",

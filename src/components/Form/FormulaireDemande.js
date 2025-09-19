@@ -189,13 +189,14 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     setSelectedFiles(files);
   };
 
-  const polesMap = {
+    const polesMap = {
     DG: "0",
     PAF: "1",
     POGEMOB: "2",
     PCOM: "3",
     PRECH: "4",
     PDONNEES: "5",
+    PDONNEESDESANTE: "5",
     PSANTE: "5",
     PQDV: "6",
   };
