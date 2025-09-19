@@ -45,6 +45,7 @@ const ProprieteDemande = ({
     PCOM: "3",
     PRECH: "4",
     PDONNEES: "5",
+    PDONNEESDESANTE: "5",
     PSANTE: "5",
     PQDV: "6",
   };
@@ -315,51 +316,51 @@ const ProprieteDemande = ({
   };
 
   // --- Mises à jour des budgets initiaux et restants ---
-  useEffect(() => {
-    const updateBudgetInitial = async () => {
-      if (
-        formData.exerciceBudgetaire &&
-        formData.services &&
-        formData.budgetsActions
-      ) {
-        await fetchBudgetInitial(
-          formData.exerciceBudgetaire,
-          formData.services,
-          formData.budgetsActions,
-          ""
-        );
-      }
-    };
-    updateBudgetInitial();
-  }, [
-    formData.exerciceBudgetaire,
-    formData.services,
-    formData.budgetsActions,
-    fetchBudgetInitial,
-  ]);
+  // useEffect(() => {
+  //   const updateBudgetInitial = async () => {
+  //     if (
+  //       formData.exerciceBudgetaire &&
+  //       formData.services &&
+  //       formData.budgetsActions
+  //     ) {
+  //       await fetchBudgetInitial(
+  //         formData.exerciceBudgetaire,
+  //         formData.services,
+  //         formData.budgetsActions,
+  //         ""
+  //       );
+  //     }
+  //   };
+  //   updateBudgetInitial();
+  // }, [
+  //   formData.exerciceBudgetaire,
+  //   formData.services,
+  //   formData.budgetsActions,
+  //   fetchBudgetInitial,
+  // ]);
 
-  useEffect(() => {
-    const updateBudgetRestant = async () => {
-      if (
-        formData.exerciceBudgetaire &&
-        formData.services &&
-        formData.budgetsActions
-      ) {
-        await fetchBudgetRestant(
-          formData.exerciceBudgetaire,
-          formData.services,
-          formData.budgetsActions,
-          ""
-        );
-      }
-    };
-    updateBudgetRestant();
-  }, [
-    formData.exerciceBudgetaire,
-    formData.services,
-    formData.budgetsActions,
-    fetchBudgetRestant,
-  ]);
+  // useEffect(() => {
+  //   const updateBudgetRestant = async () => {
+  //     if (
+  //       formData.exerciceBudgetaire &&
+  //       formData.services &&
+  //       formData.budgetsActions
+  //     ) {
+  //       await fetchBudgetRestant(
+  //         formData.exerciceBudgetaire,
+  //         formData.services,
+  //         formData.budgetsActions,
+  //         ""
+  //       );
+  //     }
+  //   };
+  //   updateBudgetRestant();
+  // }, [
+  //   formData.exerciceBudgetaire,
+  //   formData.services,
+  //   formData.budgetsActions,
+  //   fetchBudgetRestant,
+  // ]);
 
   useEffect(() => {
     const allReady =
@@ -743,15 +744,13 @@ const fetchMontantsBudget = async () => {
                         Budget global restant
                       </Typography>
                       <Typography variant="body1" color="textSecondary">
-                        {/* {montantsBudget.montant_restant || "non connu"} */}
-                        {montantsBudget.montant_restant
-                          ? montantsBudget.montant_restant.toLocaleString(
-                              "fr-FR",
-                              {
-                                style: "currency",
-                                currency: "EUR",
-                              }
-                            )
+                        {montantsBudget.montant_restant !== undefined &&
+                        montantsBudget.montant_restant !== null &&
+                        montantsBudget.montant_restant !== "non connu"
+                          ? Number(montantsBudget.montant_restant).toLocaleString("fr-FR", {
+                              style: "currency",
+                              currency: "EUR",
+                            })
                           : "non connu"}
                       </Typography>
                     </Box>

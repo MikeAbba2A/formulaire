@@ -498,49 +498,75 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     }
   };
 
-  const fetchBudgetInitial = async (annee, codePole, budget) => {
-    try {
-      const response = await fetch(`${racineAPI}affichage_budget_sur_da.php`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          annee,
-          code_pole: codePole,
-          actions: budget
-        }),
-      });
+  // const fetchBudgetInitial = async (annee, codePole, budget) => {
+  //   try {
+  //     const response = await fetch(`${racineAPI}affichage_budget_sur_da.php`, {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         annee,
+  //         code_pole: codePole,
+  //         actions: budget
+  //       }),
+  //     });
 
-      const data = await response.json();
+  //     const data = await response.json();
 
-      console.log(data.montant_initial);
+  //     console.log(data.montant_initial);
 
-      return data.montant_initial || "non connu";
-    } catch (error) {
-      console.error(
-        "❌ Erreur lors de la récupération du budget initial :",
-        error
-      );
+  //     return data.montant_initial || "non connu";
+  //   } catch (error) {
+  //     console.error(
+  //       "❌ Erreur lors de la récupération du budget initial :",
+  //       error
+  //     );
 
-      return "non connu";
-    }
-  };
+  //     return "non connu";
+  //   }
+  // };
 
-    const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
+    // const fetchBudgetRestant = async (annee, codePole, budget, categorie) => {
       
-      try {
-        const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/api/affichage_budget_restant_sur_da.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
-        });
+    //   try {
+    //     const response = await fetch("https://armoires.zeendoc.com/vaincre_la_mucoviscidose/_ClientSpecific/66579/api/affichage_budget_restant_sur_da.php", {
+    //       method: "POST",
+    //       headers: { "Content-Type": "application/json" },
+    //       body: JSON.stringify({ annee, code_pole: codePole, actions: budget, categorie }),
+    //     });
     
-        const data2 = await response.json();
-        return data2.montant_restant || "non connu";
-      } catch (error) {
+    //     const data2 = await response.json();
+    //     return data2.montant_restant || "non connu";
+    //   } catch (error) {
 
-        return "non connu";
-      }
-    };
+    //     return "non connu";
+    //   }
+    // };
+
+    // const fetchBudgetRestant = async (annee, codePole, budget) => {
+    //   try {
+    //     const response = await fetch(
+    //       `${racineAPI}affichage_budget_restant_sur_da.php`,
+    //       {
+    //         method: "POST",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify({
+    //           annee,
+    //           code_pole: codePole,
+    //           actions: budget,
+    //         }),
+    //       }
+    //     );
+
+    //     const data = await response.json();
+    //     console.log("📥 Budget restant reçu :", data);
+
+    //     return data?.montant_restant ?? "non connu";
+    //   } catch (error) {
+    //     console.error("Erreur lors du fetch budget restant :", error);
+    //     return "non connu";
+    //   }
+    // };
+
 
  
 
@@ -601,9 +627,9 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
             formData={formData}
             handleChange={handleFormDataChange}
             setFormData={setFormData}
-            fetchBudgetInitial={fetchBudgetInitial}
+            // fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
-            fetchBudgetRestant={fetchBudgetRestant}
+            // fetchBudgetRestant={fetchBudgetRestant}
             budgetRestant={budgetRestant}
             setMontantsBudget={setMontantsBudget}
             montantsBudget={montantsBudget}
@@ -625,9 +651,9 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
             lignesEngagements={lignesEngagement}
             setLignesEngagement={setLignesEngagement}
             setFormData={setFormData}
-            fetchBudgetInitial={fetchBudgetInitial}
+            // fetchBudgetInitial={fetchBudgetInitial}
             budgetInitial={budgetInitial}
-            fetchBudgetRestant={fetchBudgetRestant}
+            // fetchBudgetRestant={fetchBudgetRestant}
             budgetRestant={budgetRestant}
             selectedPole={formData.services}
             initialBudgetsInitial={rowBudgetsInitial}
