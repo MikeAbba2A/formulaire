@@ -34,8 +34,8 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     exerciceBudgetaire: "",
     services: "",
     budgetsActions: "",
-    budgetInitial: "non connu",
-    budgetRestant: "non connu",
+    budgetInitial: "0.00 €",
+    budgetRestant: "0.00 €",
     dateReception: "",
     descriptionDemande: "",
     justification: "",
@@ -52,8 +52,8 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   });
 
   const [open, setOpen] = useState(false); // État pour la popup
-  const [budgetInitial, setBudgetInitial] = useState("non connu");
-  const [budgetRestant, setBudgetRestant] = useState("non connu");
+  const [budgetInitial, setBudgetInitial] = useState("0.00 €");
+  const [budgetRestant, setBudgetRestant] = useState("0.00 €");
   const [rowBudgetsInitial, setRowBudgetsInitial] = useState([]);
   const [filteredBudgets, setFilteredBudgets] = useState([]); // Budgets filtrés
 
@@ -63,8 +63,8 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
   const [selectedFiles, setSelectedFiles] = useState([]);
 
   const [montantsBudget, setMontantsBudget] = useState({
-    montant_initial: "non connu",
-    montant_restant: "non connu",
+    montant_initial: "0.00 €",
+    montant_restant: "0.00 €",
   });
 
   const [categoriePrincipale, setCategoriePrincipale] = useState(null);
@@ -247,12 +247,12 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     );
 
     const montantInitialInconnu = rowBudgetsInitial.some(
-      (montant) => montant === "non connu"
+      (montant) => montant === "0.00 €"
     );
 
     if (montantInitialInconnu) {
       alert(
-        "Le montant initial d'une ou plusieurs lignes est 'non connu', validation non permise."
+        "Le montant initial d'une ou plusieurs lignes est '0.00 €', validation non permise."
       );
       return; // Bloque la validation du formulaire
     }
@@ -363,20 +363,20 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
       // Ajout du budget initial et restant dans chaque ligne d'engagement
       const lignesEngagementAvecBudget = toutesLesLignes.map((ligne) => ({
         ...ligne,
-        budgetInitial: ligne.budgetInitial || "non connu",
-        budgetRestant: ligne.budgetRestant || "non connu",
+        budgetInitial: ligne.budgetInitial || "0.00 €",
+        budgetRestant: ligne.budgetRestant || "0.00 €",
       }));
 
       // Si un montant est connu, on le remplace
       const budgetInitialFormValue =
-        montantsBudget.montant_initial !== "non connu"
+        montantsBudget.montant_initial !== "0.00 €"
           ? montantsBudget.montant_initial
-          : "non connu";
+          : "0.00 €";
 
       const budgetRestantFormValue =
-        montantsBudget.montant_restant !== "non connu"
+        montantsBudget.montant_restant !== "0.00 €"
           ? montantsBudget.montant_restant
-          : "non connu";
+          : "0.00 €";
 
       // Mettre à jour formData avec l'adresse par défaut si elles ne sont pas remplies
       const formDataUpdated = {
@@ -515,14 +515,14 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
 
   //     console.log(data.montant_initial);
 
-  //     return data.montant_initial || "non connu";
+  //     return data.montant_initial || "0.00 €";
   //   } catch (error) {
   //     console.error(
   //       "❌ Erreur lors de la récupération du budget initial :",
   //       error
   //     );
 
-  //     return "non connu";
+  //     return "0.00 €";
   //   }
   // };
 
@@ -536,10 +536,10 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     //     });
     
     //     const data2 = await response.json();
-    //     return data2.montant_restant || "non connu";
+    //     return data2.montant_restant || "0.00 €";
     //   } catch (error) {
 
-    //     return "non connu";
+    //     return "0.00 €";
     //   }
     // };
 
@@ -561,10 +561,10 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
     //     const data = await response.json();
     //     console.log("📥 Budget restant reçu :", data);
 
-    //     return data?.montant_restant ?? "non connu";
+    //     return data?.montant_restant ?? "0.00 €";
     //   } catch (error) {
     //     console.error("Erreur lors du fetch budget restant :", error);
-    //     return "non connu";
+    //     return "0.00 €";
     //   }
     // };
 
@@ -602,7 +602,7 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
               </Typography>
               <Typography variant="body1" id="demandeur">
                 <strong>Initiateur de la demande :</strong>{" "}
-                {nom || "Non connu..."}
+                {nom || "0.00 €..."}
               </Typography>
             </Box>
           </Box>

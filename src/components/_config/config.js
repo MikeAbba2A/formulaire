@@ -5,8 +5,8 @@ export const newRow = {
   quantite: 0,
   prixUnitaire: 0,
   total: 0,
-  budgetInitial: "non connu",
-  budgetRestant: "non connu",
+  budgetInitial: "0.00 €",
+  budgetRestant: "0.00 €",
 };
 
 export const racineAPI =

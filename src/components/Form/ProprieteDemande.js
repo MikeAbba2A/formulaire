@@ -80,56 +80,83 @@ const ProprieteDemande = ({
     }
   };
 
-  useEffect(() => {
-    const fetchMontantProjet = async () => {
-      if (!formData?.budgetsActions) {
-        setMontantProjet(null);
-        return;
-      }
 
-      try {
-        const response = await fetch(
-          `${racineAPI}projet.php?type=${typeDemande}`
-        );
-        const data = await response.json();
 
-        const matching = data.find(
-          (item) => item.budget === formData.budgetsActions
-        );
-
-        if (matching) {
-          setMontantProjet(matching); // contient .montant et .projet
-        } else {
-          setMontantProjet(null); // pas dans un projet
-        }
-      } catch (error) {
-        console.error("Erreur fetch montant projet :", error);
-        setMontantProjet(null);
-      }
-    };
-
-    fetchMontantProjet();
-  }, [formData?.budgetsActions]);
-
-  // --- Pré-remplissage du formulaire via le paramètre "json" dans l'URL ---
   // useEffect(() => {
-  //   const json = urlParams.get("json");
-  //   if (json) {
-  //     try {
-  //       const parsed = JSON.parse(decodeURIComponent(json));
-
-  //       setFormData((prev) => {
-  //         // Vérifier si les données sont identiques pour éviter une mise à jour inutile
-  //         if (JSON.stringify(prev) === JSON.stringify({ ...prev, ...parsed })) {
-  //           return prev; // Pas de changement, éviter un re-render
-  //         }
-  //         return { ...prev, ...parsed };
-  //       });
-  //     } catch (error) {
-  //       console.error("Erreur lors du parsing du JSON dans l'URL :", error);
+  //   const fetchMontantProjet = async () => {
+  //     if (!formData?.budgetsActions) {
+  //       setMontantProjet(null);
+  //       return;
   //     }
-  //   }
-  // }, [urlParams]);
+  //     try {
+  //       const response = await fetch(
+  //           `${racineAPI}projet.php?type=${typeDemande}&isPluriannuel=${formData.lignesTransversales ? 1 : 0}`
+  //       );
+  //       const data = await response.json();
+  //       const matching = data.find(
+  //         (item) => item.budgets.includes(formData.budgetsActions)
+  //       );
+  //       if (matching) {
+  //         setMontantProjet(matching); // contient .montant et .projet
+  //       } else {
+  //         setMontantProjet(null); // pas dans un projet
+  //       }
+  //     } catch (error) {
+  //       console.error("Erreur fetch montant projet :", error);
+  //       setMontantProjet(null);
+  //     }
+  //   };
+  //   fetchMontantProjet();
+  // }, [formData?.budgetsActions]);
+
+useEffect(() => {
+  const fetchMontantProjet = async () => {
+    if (!formData?.budgetsActions || !formData?.exerciceBudgetaire) {
+      setMontantProjet(null);
+      return;
+    }
+
+    try {
+      // calcul de l'année budgétaire à envoyer
+      let anneeBudgetaire = formData.exerciceBudgetaire;
+
+      if (formData.lignesTransversales) {
+        const currentYear = parseInt(formData.exerciceBudgetaire, 10);
+        const nextYear = currentYear + 1;
+        anneeBudgetaire = `${currentYear}-${nextYear}`;
+      }
+
+      const response = await fetch(
+        `${racineAPI}projet.php?type=${typeDemande}&annee=${encodeURIComponent(
+          anneeBudgetaire
+        )}&isPluriannuel=${formData.lignesTransversales ? 1 : 0}`
+      );
+
+      const data = await response.json();
+
+      const matching = data.find((item) =>
+        item.budgets.includes(formData.budgetsActions)
+      );
+
+      if (matching) {
+        setMontantProjet(matching);
+      } else {
+        setMontantProjet(null);
+      }
+    } catch (error) {
+      console.error("Erreur fetch montant projet :", error);
+      setMontantProjet(null);
+    }
+  };
+
+  fetchMontantProjet();
+}, [
+  formData?.budgetsActions,
+  formData?.exerciceBudgetaire,
+  formData?.lignesTransversales,
+]);
+
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -319,53 +346,6 @@ const ProprieteDemande = ({
     }
   };
 
-  // --- Mises à jour des budgets initiaux et restants ---
-  // useEffect(() => {
-  //   const updateBudgetInitial = async () => {
-  //     if (
-  //       formData.exerciceBudgetaire &&
-  //       formData.services &&
-  //       formData.budgetsActions
-  //     ) {
-  //       await fetchBudgetInitial(
-  //         formData.exerciceBudgetaire,
-  //         formData.services,
-  //         formData.budgetsActions,
-  //         ""
-  //       );
-  //     }
-  //   };
-  //   updateBudgetInitial();
-  // }, [
-  //   formData.exerciceBudgetaire,
-  //   formData.services,
-  //   formData.budgetsActions,
-  //   fetchBudgetInitial,
-  // ]);
-
-  // useEffect(() => {
-  //   const updateBudgetRestant = async () => {
-  //     if (
-  //       formData.exerciceBudgetaire &&
-  //       formData.services &&
-  //       formData.budgetsActions
-  //     ) {
-  //       await fetchBudgetRestant(
-  //         formData.exerciceBudgetaire,
-  //         formData.services,
-  //         formData.budgetsActions,
-  //         ""
-  //       );
-  //     }
-  //   };
-  //   updateBudgetRestant();
-  // }, [
-  //   formData.exerciceBudgetaire,
-  //   formData.services,
-  //   formData.budgetsActions,
-  //   fetchBudgetRestant,
-  // ]);
-
   useEffect(() => {
     const allReady =
       formData.exerciceBudgetaire &&
@@ -377,72 +357,42 @@ const ProprieteDemande = ({
     }
   }, [formData.exerciceBudgetaire, formData.services, formData.budgetsActions]);
 
+
 // const fetchMontantsBudget = async () => {
 //   try {
-//     const response = await fetch(`${racineAPI}total_budget.php`);
-//     const data = await response.json();
-
-//     /**
-//      * @typedef {Object} BudgetItem
-//      * @property {(string|number)=} annee
-//      * @property {string=} actions
-//      * @property {(number|string)=} montant_initial
-//      * @property {(number|string)=} montant_restant
-//      */
-
-//     /** @type {BudgetItem[]} */
-//     const items = Array.isArray(data) ? data : Object.values(data || {});
-
-//     // ✅ Récupération/normalisation du code budget (avant " - ")
 //     const rawBudget = formData.budgetsActions || "";
 //     const budgetCode = rawBudget.includes(" - ")
 //       ? rawBudget.split(" - ")[0].trim()
 //       : rawBudget.trim();
 
-//     if (!budgetCode) {
-//       console.warn("❌ Aucun code budget fourni.");
+//     const payload = {
+//       annee: formData.exerciceBudgetaire,
+//       code_pole: formData.services,
+//       actions: budgetCode,
+//     };
+
+//     const response = await fetch(`${racineAPI}total_budget.php`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     const data = await response.json();
+//     console.log("📝 Données reçues de total_budget.php :", data);
+
+//     if (!data || data.error) {
+//       console.warn("❌ Aucun budget trouvé pour :", budgetCode, "année :", payload.annee);
+//       setMontantsBudget({ montant_initial: "0.00 €", montant_restant: "0.00 €" });
 //       return;
 //     }
 
-//     // ✅ Extraction d'une année sur 4 chiffres dans exerciceBudgetaire
-//     /** @param {*} val @returns {string} */
-//     const extractYear = (val) => {
-//       const m = String(val ?? "").match(/\b(20\d{2})\b/);
-//       return m ? m[1] : "";
-//     };
-//     const selectedYear = extractYear(formData.exerciceBudgetaire);
-
-//     // 🎯 Match strict: actions === code ET annee === selectedYear
-//     console.log("📝 Données reçues de total_budget.php :", items);
-// console.log("🔍 Recherche avec :", { budgetCode, selectedYear });
-
-//     let budget =
-//       items.find(
-//         (it) =>
-//           String((it && it.actions) || "").trim() === budgetCode &&
-//           String(it && it.annee) === selectedYear
-//       ) ||
-//       // 🔁 Fallback: si l'année n'est pas trouvée, on prend la plus récente pour ce code
-//       items
-//         .filter((it) => String((it && it.actions) || "").trim() === budgetCode)
-//         .sort((a, b) => Number((b && b.annee) || 0) - Number((a && a.annee) || 0))[0];
-
-//     const isDefined = (v) => v !== undefined && v !== null;
-
-//     if (budget) {
-//       setMontantsBudget({
-//         montant_initial: isDefined(budget.montant_initial) ? budget.montant_initial : "non connu",
-//         montant_restant: isDefined(budget.montant_restant) ? budget.montant_restant : "non connu",
-//       });
-//     } else {
-//       console.warn(
-//         "❌ Aucun budget trouvé pour :", budgetCode, "année :", selectedYear || "(non précisée)"
-//       );
-//       setMontantsBudget({
-//         montant_initial: "non connu",
-//         montant_restant: "non connu",
-//       });
-//     }
+//     // le reste de ta logique inchangé
+//     setMontantsBudget({
+//       montant_initial: data.montant_initial ?? "0.00 €",
+//       montant_restant: data.montant_restant ?? "0.00 €",
+//     });
 //   } catch (error) {
 //     console.error("Erreur lors de la récupération des montants du budget :", error);
 //   }
@@ -455,13 +405,25 @@ const fetchMontantsBudget = async () => {
       ? rawBudget.split(" - ")[0].trim()
       : rawBudget.trim();
 
+    // 🔹 Calcul de l’année budgétaire à envoyer
+    let anneeBudgetaire = formData.exerciceBudgetaire;
+
+    if (formData.lignesTransversales) {
+      const currentYear = parseInt(formData.exerciceBudgetaire, 10);
+      const nextYear = currentYear + 1;
+      anneeBudgetaire = `${currentYear}-${nextYear}`;
+    }
+
     const payload = {
-      annee: formData.exerciceBudgetaire,
+      annee: anneeBudgetaire,
       code_pole: formData.services,
       actions: budgetCode,
+      isPluriannuel: formData.lignesTransversales ? 1 : 0, // 🔹 ajout du flag
     };
 
-    const response = await fetch(`${racineAPI}total_budget.php`, {
+    const params = new URLSearchParams(payload).toString();
+
+    const response = await fetch(`${racineAPI}total_budget.php?${params}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -473,15 +435,22 @@ const fetchMontantsBudget = async () => {
     console.log("📝 Données reçues de total_budget.php :", data);
 
     if (!data || data.error) {
-      console.warn("❌ Aucun budget trouvé pour :", budgetCode, "année :", payload.annee);
-      setMontantsBudget({ montant_initial: "non connu", montant_restant: "non connu" });
+      console.warn(
+        "❌ Aucun budget trouvé pour :",
+        budgetCode,
+        "année :",
+        payload.annee
+      );
+      setMontantsBudget({
+        montant_initial: "0.00 €",
+        montant_restant: "0.00 €",
+      });
       return;
     }
 
-    // le reste de ta logique inchangé
     setMontantsBudget({
-      montant_initial: data.montant_initial ?? "non connu",
-      montant_restant: data.montant_restant ?? "non connu",
+      montant_initial: data.montant_initial ?? "0.00 €",
+      montant_restant: data.montant_restant ?? "0.00 €",
     });
   } catch (error) {
     console.error("Erreur lors de la récupération des montants du budget :", error);
@@ -489,77 +458,9 @@ const fetchMontantsBudget = async () => {
 };
 
 
-
   useEffect(() => {
     console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
   }, [categoriePrincipale]);
-
-  // useEffect(() => {
-  //   if (categoriePrincipale === null) {
-  //     console.log("⏸️ categoriePrincipale pas encore définie. Attente…");
-  //     return;
-  //   }
-
-  //   console.log("🚀 useEffect triggered");
-
-  //   const fetchFournisseurType = async () => {
-  //     console.log("📊 Déclenchement useEffect avec : ", {
-  //       exerciceBudgetaire: formData.exerciceBudgetaire,
-  //       services: formData.services,
-  //       budgetsActions: formData.budgetsActions,
-  //       categoriePrincipale,
-  //     });
-
-  //     if (
-  //       formData.exerciceBudgetaire &&
-  //       formData.services &&
-  //       formData.budgetsActions &&
-  //       categoriePrincipale
-  //     ) {
-  //       console.log(
-  //         "🟢 Tentative de fetch du fichier fournisseur_lucra_nonLucra.php"
-  //       );
-
-  //       try {
-  //         const response = await fetch(
-  //           `${racineAPI}fournisseur_lucra_nonLucra.php`
-  //         );
-  //         const data = await response.json();
-  //         console.log("✅ Données reçues :", data);
-
-  //         const budgetCode = formData.budgetsActions.split(" - ")[0];
-  //         const matching = data.find(
-  //           (item) =>
-  //             item.annee === formData.exerciceBudgetaire.toString() &&
-  //             item.pole === formData.services &&
-  //             item.budget.startsWith(budgetCode) &&
-  //             item.categorie === categoriePrincipale
-  //         );
-
-  //         if (matching) {
-  //           console.log("🎯 Type fournisseur trouvé :", matching.type);
-  //           setFournisseurType(matching.type);
-  //         } else {
-  //           console.warn("❌ Aucun fournisseur correspondant trouvé.");
-  //           setFournisseurType(null);
-  //         }
-  //       } catch (error) {
-  //         console.error("⛔ Erreur fetch :", error);
-  //       }
-  //     } else {
-  //       console.log(
-  //         "⏳ En attente de toutes les données nécessaires pour lancer la vérification du fournisseur."
-  //       );
-  //     }
-  //   };
-
-  //   fetchFournisseurType();
-  // }, [
-  //   formData.exerciceBudgetaire,
-  //   formData.services,
-  //   formData.budgetsActions,
-  //   categoriePrincipale,
-  // ]);
 
   return (
     <Box
@@ -604,7 +505,7 @@ const fetchMontantsBudget = async () => {
                 required
                 sx={{ marginBottom: 2 }}
               >
-                {[-1, 0, 1].map((offset) => {
+                {[0, 1].map((offset) => {
                   const year = new Date().getFullYear() + offset;
                   return (
                     <MenuItem key={year} value={year}>
@@ -633,7 +534,7 @@ const fetchMontantsBudget = async () => {
               </TextField>
 
               {/* Budgets / Actions */}
-              <TextField
+              {/* <TextField
                 select
                 fullWidth
                 label="Budgets / Actions"
@@ -648,7 +549,27 @@ const fetchMontantsBudget = async () => {
                     {budget}
                   </MenuItem>
                 ))}
+              </TextField> */}
+              <TextField
+                select
+                fullWidth
+                label="Budgets / Actions"
+                name="budgetsActions"
+                value={formData.budgetsActions || ""}
+                onChange={handleBudgetChange}
+                required
+                sx={{ marginBottom: 2 }}
+              >
+                {filteredBudgets
+                  .slice() // pour éviter de modifier l’original
+                  .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }))
+                  .map((budget, index) => (
+                    <MenuItem key={index} value={budget.split(" - ")[0]}>
+                      {budget}
+                    </MenuItem>
+                  ))}
               </TextField>
+
             </Grid>
 
             {(montantProjet ||
@@ -724,7 +645,7 @@ const fetchMontantsBudget = async () => {
                     >
                       <Typography variant="body1">Budget global</Typography>
                       <Typography variant="body1" color="textSecondary">
-                        {/* {montantsBudget.montant_initial || "non connu"} */}
+                        {/* {montantsBudget.montant_initial || "0.00 €"} */}
                         {montantsBudget.montant_initial
                           ? montantsBudget.montant_initial.toLocaleString(
                               "fr-FR",
@@ -733,7 +654,7 @@ const fetchMontantsBudget = async () => {
                                 currency: "EUR",
                               }
                             )
-                          : "non connu"}
+                          : "0.00 €"}
                       </Typography>
                     </Box>
 
@@ -750,12 +671,12 @@ const fetchMontantsBudget = async () => {
                       <Typography variant="body1" color="textSecondary">
                         {montantsBudget.montant_restant !== undefined &&
                         montantsBudget.montant_restant !== null &&
-                        montantsBudget.montant_restant !== "non connu"
+                        montantsBudget.montant_restant !== "0.00 €"
                           ? Number(montantsBudget.montant_restant).toLocaleString("fr-FR", {
                               style: "currency",
                               currency: "EUR",
                             })
-                          : "non connu"}
+                          : "0.00 €"}
                       </Typography>
                     </Box>
                   </Box>

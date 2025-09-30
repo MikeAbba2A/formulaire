@@ -83,12 +83,12 @@ const LignesEngagements = ({
         formData.services &&
         formData.budgetsActions
       ) {
-        const montant = await fetchBudgetInitial(
-          formData.exerciceBudgetaire,
-          formData.services,
-          formData.budgetsActions,
-          "" // Catégorie vide ici
-        );
+        // const montant = await fetchBudgetInitial(
+        //   formData.exerciceBudgetaire,
+        //   formData.services,
+        //   formData.budgetsActions,
+        //   "" // Catégorie vide ici
+        // );
       }
     };
     updateBudgetInitial();
@@ -101,12 +101,12 @@ const LignesEngagements = ({
         formData.services &&
         formData.budgetsActions
       ) {
-        const montant = await fetchBudgetRestant(
-          formData.exerciceBudgetaire,
-          formData.services,
-          formData.budgetsActions,
-          "" // Catégorie vide ici
-        );
+        // const montant = await fetchBudgetRestant(
+        //   formData.exerciceBudgetaire,
+        //   formData.services,
+        //   formData.budgetsActions,
+        //   "" // Catégorie vide ici
+        // );
       }
     };
     updateBudgetRestant();
@@ -335,9 +335,9 @@ const handleChangeLigne = async (annee, index, e) => {
           value
         );
 
-        if (updatedRow.budgetInitial === "non connu") {
+        if (updatedRow.budgetInitial === "0.00 €") {
           alert(
-            "Le montant initial est 'non connu'. Veuillez sélectionner une autre catégorie."
+            "Le montant initial est '0.00 €'. Veuillez sélectionner une autre catégorie."
           );
           updatedRow["categorie"] = "";
         }
@@ -494,7 +494,7 @@ const handleChangeLigne = async (annee, index, e) => {
                     >
                       <Typography variant="body1">Budget initial</Typography>
                       <Typography variant="body1" color="textSecondary">
-                        {row.budgetInitial || "non connu"}
+                        {row.budgetInitial || "0.00 €"}
                       </Typography>
                     </Box>
                     <Box
@@ -502,7 +502,7 @@ const handleChangeLigne = async (annee, index, e) => {
                     >
                       <Typography variant="body1">Budget restant</Typography>
                       <Typography variant="body1" color="textSecondary">
-                        {row.budgetRestant || "non connu"}
+                        {row.budgetRestant || "0.00 €"}
                       </Typography>
                     </Box>
                   </Box>
