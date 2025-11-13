@@ -257,40 +257,13 @@ const FormulaireDemande = ({ typeDemande, setTypeDemande }) => {
       return; // Bloque la validation du formulaire
     }
 
-    // Vérifier si le montant total est 0.00
-    // if (totalGeneral === 0) {
-    //   alert(
-    //     "Le montant de la demande d'achat est de 0.00€, validation non permise."
-    //   );
-    //   return; // Bloque la validation du formulaire
-    // }
+    // const montantRestantNum = parseFloat(montantsBudget.montant_restant);
 
-    const montantRestantNum = parseFloat(montantsBudget.montant_restant);
-    // if (!isNaN(montantRestantNum) && totalGeneral > montantRestantNum) {
-    //   alert("Le montant total de cette demande d'achat dépasse le montant restant disponible pour ce budget.");
-    //   return;
-    // }
+    // ✅ Récupération des données projet depuis formData (déjà mises à jour par ProprieteDemande)
+    const projetNom = formData.projetNom || "";
+    const projetMontant = formData.projetMontant || "";
 
-    let projetNom = "";
-    let projetMontant = "";
-
-    try {
-      const projetResponse = await fetch(
-        `${racineAPI}projet.php?type=${typeDemande}`
-      );
-      const projetsData = await projetResponse.json();
-
-      const projetAssocie = projetsData.find(
-        (p) => p.budget === formData.budgetsActions
-      );
-
-      if (projetAssocie) {
-        projetNom = projetAssocie.projet || "";
-        projetMontant = projetAssocie.montant || "";
-      }
-    } catch (error) {
-      console.warn("⚠️ Impossible de récupérer les données de projet :", error);
-    }
+    console.log("📊 Données projet envoyées :", { projetNom, projetMontant });
 
     // Récupérer le demandeur depuis l'élément #demandeur
     const demandeurElement = document.getElementById("demandeur");

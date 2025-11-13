@@ -128,7 +128,7 @@ const LignesEngagements = ({
       .then((response) => response.json())
       .then((data) => {
         const arrayData = Object.values(data); // ✅ transforme l’objet en tableau
-        console.log("Catégories reçues :", arrayData);
+        
         setCategories(arrayData);
       })
       .catch((error) =>
@@ -310,7 +310,7 @@ const handleChangeLigne = async (annee, index, e) => {
     // Si la catégorie change → traitement spécial
     if (field === "categorie" && value) {
       if (typeof onCategorieChange === "function") {
-        console.log("✅ Catégorie transmise au parent :", value);
+        
         onCategorieChange(value);
       }
 

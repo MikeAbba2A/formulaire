@@ -113,6 +113,14 @@ useEffect(() => {
   const fetchMontantProjet = async () => {
     if (!formData?.budgetsActions || !formData?.exerciceBudgetaire) {
       setMontantProjet(null);
+
+      // Reset aussi dans formData
+      setFormData(prev => ({
+        ...prev,
+        projetNom: "",
+        projetMontant: ""
+      }));
+
       return;
     }
 
@@ -140,12 +148,34 @@ useEffect(() => {
 
       if (matching) {
         setMontantProjet(matching);
+
+        // ✅ On met à jour formData pour que le backend le reçoive
+        setFormData(prev => ({
+          ...prev,
+          projetNom: matching.projet || "",
+          projetMontant: matching.montant || ""
+        }));
+
       } else {
         setMontantProjet(null);
+
+        setFormData(prev => ({
+          ...prev,
+          projetNom: "",
+          projetMontant: ""
+        }));
+
       }
     } catch (error) {
       console.error("Erreur fetch montant projet :", error);
       setMontantProjet(null);
+
+      setFormData(prev => ({
+        ...prev,
+        projetNom: "",
+        projetMontant: ""
+      }));
+      
     }
   };
 
@@ -164,16 +194,10 @@ useEffect(() => {
         const response = await fetch(`${racineAPI}data.php`);
         const data = await response.json();
 
-        console.log("✅ Données budgets chargées", data);
-
-        console.log("✅ Données budgets chargées", data.data);
         setDataBudgets(data.data);
         setTypeDemande(data.type);
 
-        console.log(
-          "✅ Type de demande en fonction du coll_id d'appel",
-          data.type
-        );
+        
       } catch (error) {
         console.error(
           "⛔ Erreur lors du chargement initial des budgets :",
@@ -432,7 +456,7 @@ const fetchMontantsBudget = async () => {
     });
 
     const data = await response.json();
-    console.log("📝 Données reçues de total_budget.php :", data);
+   
 
     if (!data || data.error) {
       console.warn(
@@ -458,9 +482,9 @@ const fetchMontantsBudget = async () => {
 };
 
 
-  useEffect(() => {
-    console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
-  }, [categoriePrincipale]);
+  // useEffect(() => {
+  //   console.log("🆕 categoriePrincipale a changé :", categoriePrincipale);
+  // }, [categoriePrincipale]);
 
   return (
     <Box
